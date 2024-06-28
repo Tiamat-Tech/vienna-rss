@@ -909,10 +909,16 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 /* openVienna
  * Calls into showMainWindow but activates the app first.
  */
--(IBAction)openVienna:(id)sender
+- (IBAction)openVienna:(id)sender
 {
-	[NSApp activateIgnoringOtherApps:YES];
-	[self showMainWindow:sender];
+    if (@available(macOS 14, *)) {
+        [NSApp activate];
+    } else {
+        [NSApp activateIgnoringOtherApps:YES];
+    }
+    if (NSApp.isActive) {
+        [self showMainWindow:sender];
+    }
 }
 
 /* showMainWindow
@@ -1949,7 +1955,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 			if (self.mainWindow.firstResponder == self.foldersTree.mainView) {
 				[self deleteFolder:self];
 				return YES;
-			} else if (self.mainWindow.firstResponder == (self.articleController.mainArticleView).mainView) {
+			} else if (self.browser.activeTab == nil) { // make sure we are in the articles tab
 				[self deleteMessage:self];
 				return YES;
 			}
