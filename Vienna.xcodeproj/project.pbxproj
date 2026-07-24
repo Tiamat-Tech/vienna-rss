@@ -365,6 +365,7 @@
 		3A171BF0210B551B00B80FBB /* TRVSURLSessionOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TRVSURLSessionOperation.h; sourceTree = "<group>"; };
 		3A171BF1210B551B00B80FBB /* TRVSURLSessionOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TRVSURLSessionOperation.m; sourceTree = "<group>"; };
 		3A23F13315276935008AF863 /* NSNotificationAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSNotificationAdditions.h; sourceTree = "<group>"; };
+		3A243F6430139039000B8D82 /* Architecture.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = Architecture.md; path = Documentation/Architecture.md; sourceTree = SOURCE_ROOT; };
 		3A4DBEC51733C206006DD2AB /* ArticleCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArticleCellView.h; sourceTree = "<group>"; };
 		3A4DBEC61733C206006DD2AB /* ArticleCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArticleCellView.m; sourceTree = "<group>"; };
 		3A5482F7168F5F4800887F91 /* Sparkle-setup.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Sparkle-setup.sh"; sourceTree = "<group>"; };
@@ -894,6 +895,7 @@
 				439824201666B3DB00FFE219 /* CHANGELOG.md */,
 				439824221666B3DB00FFE219 /* notes.html */,
 				F6BD1FDC2C9D7E230075D04F /* Contributing.md */,
+				3A243F6430139039000B8D82 /* Architecture.md */,
 				3AA9880F2F34F3E40035B027 /* LLM-Usage-Policy.md */,
 				439824241666B3DB00FFE219 /* Release Instructions.md */,
 			);
