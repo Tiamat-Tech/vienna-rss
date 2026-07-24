@@ -452,7 +452,7 @@
 		4398241E1666B3DB00FFE219 /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = SOURCE_ROOT; };
 		439824201666B3DB00FFE219 /* CHANGELOG.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG.md; sourceTree = SOURCE_ROOT; };
 		439824221666B3DB00FFE219 /* notes.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = notes.html; sourceTree = SOURCE_ROOT; };
-		439824231666B3DB00FFE219 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = SOURCE_ROOT; };
+		439824231666B3DB00FFE219 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		439824241666B3DB00FFE219 /* Release Instructions.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = "Release Instructions.md"; path = "Documentation/Release Instructions.md"; sourceTree = SOURCE_ROOT; };
 		4D36B44A1D37F91E009736C1 /* ArticleTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArticleTests.m; sourceTree = "<group>"; };
 		664F87C513C62DFE00E266DE /* OpenReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenReader.h; sourceTree = "<group>"; };
@@ -889,13 +889,13 @@
 			isa = PBXGroup;
 			children = (
 				4398241E1666B3DB00FFE219 /* Credits.rtf */,
-				439824201666B3DB00FFE219 /* CHANGELOG.md */,
-				439824221666B3DB00FFE219 /* notes.html */,
-				439824241666B3DB00FFE219 /* Release Instructions.md */,
 				439824231666B3DB00FFE219 /* README.md */,
 				F6BD1FDD2C9D7E2E0075D04F /* LICENCE.md */,
+				439824201666B3DB00FFE219 /* CHANGELOG.md */,
+				439824221666B3DB00FFE219 /* notes.html */,
 				F6BD1FDC2C9D7E230075D04F /* Contributing.md */,
 				3AA9880F2F34F3E40035B027 /* LLM-Usage-Policy.md */,
+				439824241666B3DB00FFE219 /* Release Instructions.md */,
 			);
 			name = Documentation;
 			sourceTree = "<group>";
