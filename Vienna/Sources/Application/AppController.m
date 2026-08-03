@@ -1303,6 +1303,10 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
                                  action:@selector(openVienna:)
                           keyEquivalent:@""];
         [statusBarMenu addItem:[NSMenuItem separatorItem]];
+		[statusBarMenu addItemWithTitle:NSLocalizedString(@"Add Subscription…", @"Title of a menu item in menu bar icon")
+								 action:@selector(newSubscription:)
+						  keyEquivalent:@""];
+		[statusBarMenu addItem:[NSMenuItem separatorItem]];
 		[statusBarMenu addItemWithTitle:NSLocalizedString(@"Refresh All Subscriptions", @"Title of a menu item")
 								 action:@selector(refreshAllSubscriptions:)
 						  keyEquivalent:@""];
@@ -1893,6 +1897,16 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
  */
 -(IBAction)newSubscription:(id)sender
 {
+    // This can be triggered from the menu bar icon while Vienna is in the
+    // background, so activate the app and show the main window before
+    // presenting the sheet on it.
+    if (@available(macOS 14, *)) {
+        [NSApp activate];
+    } else {
+        [NSApp activateIgnoringOtherApps:YES];
+    }
+
+    [self showMainWindow:self];
     VNASubscribeViewController *viewController = [VNASubscribeViewController instantiateFromStoryboard];
     [self.mainWindow.contentViewController presentViewControllerAsSheet:viewController];
 }
