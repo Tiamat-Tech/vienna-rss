@@ -36,7 +36,7 @@ We recommend to install [SwiftLint](https://github.com/realm/SwiftLint).
 
 6. It is recommended to hard wrap the __body__ text at 72 characters (except for quoted material that is non-prose, like compiler error messages).
 
-7. Use the body to explain _what_ and _why_ (and not on the _how_). Focus on the reasons which required the change - the way things worked before the change (and what was wrong with that), the way they work now, and why you decided to solve it the way you did.  
+7. Use the body to explain _what_ and _why_ (and not on the _how_). Focus on the reasons which required the change - the way things worked before the change (and what was wrong with that); the way they work now; and why you decided to solve it the way you did.  
 You may reference issues/discussions raised at GitHub, but avoid relying heavily on them: a reviewer should be able to make an analysis based solely on code and commit messages.
 
 ### Note
