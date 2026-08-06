@@ -54,11 +54,11 @@ Contributing
 
 Want to contribute? Great! There are many ways you can, even if you aren't a developer.
 
-This project has strict rules regarding usage of so-called "AI". Please see the [LLM usage policy](Documentation/LLM-Usage-Policy.md).
+This project has strict rules regarding usage of so-called "AI". Please see the [LLM usage policy](./Documentation/LLM-Usage-Policy.md).
 
 ### Writing code
 
-Please check [Contributing.md](Documentation/Contributing.md).
+Please check [Contributing.md](./Documentation/Contributing.md). An entry point to the project's structure is in [Architecture.md](./Documentation/Architecture.md).
 
 ### Localizing ###
 
