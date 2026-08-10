@@ -331,6 +331,7 @@ extension Criteria: PredicateConvertible {
         guard let database = Database.shared, let folder = database.folder(fromName: value) else {
             // no error, since it is possible that a folder was renamed or deleted
             // without considering the smart folder referencing it
+            NSLog("[Criteria] Could not resolve folder name '\(value)' in test or conversion. Renamed or deleted?")
             return ""
         }
 
