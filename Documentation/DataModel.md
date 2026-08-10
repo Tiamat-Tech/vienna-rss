@@ -21,6 +21,9 @@ Articles represent individual pieces of consumed content stored within a folder 
 *   **Parsed Content:** The cleaned, rendered HTML or formatted text used for display in Article View.
 *   **Status Flags:** Critical flags such as `unread_status`, `flagged` status (favorite / to be re-read), `revised` or `deleted` statuses.
 
+### 🧱 Fields (`Field`)
+The Field object is an atomic unit of data within the system. It is designed to map functional attributes required for database operations and informations for use in article list view or other UI components (data type, display name to be used, default width and visibility, customization options…).
+
 ### 🧩 Criteria & Predicates
 This layer defines the logic that dictates folder membership. A criteria set allows users to define complex groupings using standard boolean operators (`AND`, `OR`, `NOT`). This structured approach enables powerful, generalized filtering for Smart Folders, ensuring consistency across all dynamic views.
 
