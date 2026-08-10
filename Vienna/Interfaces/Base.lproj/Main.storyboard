@@ -743,8 +743,8 @@ CA
                                                 <action selector="previousTab:" target="Ady-hI-5gd" id="uIb-HR-dbe"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Next Tab" keyEquivalent="" id="1009">
-                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                        <menuItem title="Next Tab" keyEquivalent="⇥" id="1009">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
                                                 <action selector="nextTab:" target="Ady-hI-5gd" id="dkJ-sH-L2U"/>
                                             </connections>
@@ -824,6 +824,13 @@ CA
                 <userDefaultsController representsSharedInstance="YES" id="6A7-UP-2hS"/>
                 <menu id="JWi-Bw-kAV" userLabel="Dock Menu">
                     <items>
+                        <menuItem title="New Subscription…" id="K3b-Qm-MH7">
+                            <modifierMask key="keyEquivalentModifierMask"/>
+                            <connections>
+                                <action selector="newSubscription:" target="Ady-hI-5gd" id="qgd-xT-lQd"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="lKD-wr-Syu"/>
                         <menuItem title="Refresh All Subscriptions" id="6yn-y8-lF1">
                             <connections>
                                 <action selector="refreshAllSubscriptions:" target="Ady-hI-5gd" id="Whj-Tj-DBA"/>
@@ -1151,7 +1158,7 @@ CA
                                     <autoresizingMask key="autoresizingMask"/>
                                     <clipView key="contentView" copiesOnScroll="NO" id="TOX-JT-adF">
                                         <rect key="frame" x="0.0" y="0.0" width="701" height="308"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <autoresizingMask key="autoresizingMask"/>
                                         <subviews>
                                             <tableView focusRingType="none" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" autosaveColumns="NO" rowHeight="15" headerView="1386" id="977" customClass="MessageListView">
                                                 <rect key="frame" x="0.0" y="0.0" width="701" height="285"/>
@@ -1205,7 +1212,7 @@ CA
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <clipView key="contentView" id="emU-La-Fur">
                                 <rect key="frame" x="0.0" y="0.0" width="701" height="677"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <autoresizingMask key="autoresizingMask"/>
                                 <subviews>
                                     <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" tableStyle="fullWidth" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" id="NgO-hM-mCz">
                                         <rect key="frame" x="0.0" y="0.0" width="701" height="677"/>

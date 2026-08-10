@@ -3700,6 +3700,9 @@
         }
       }
     },
+    "Add Subscription…" : {
+      "comment" : "Title of a menu item in Dock"
+    },
     "Add to Safari Reading List" : {
       "comment" : "Toolbar item palette label",
       "localizations" : {

@@ -19594,6 +19594,18 @@
         }
       }
     },
+    "K3b-Qm-MH7.title" : {
+      "comment" : "Class = \"NSMenuItem\"; title = \"New Subscription…\"; ObjectID = \"K3b-Qm-MH7\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "New Subscription…"
+          }
+        }
+      }
+    },
     "kCi-pf-mkc.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Smart Quotes\"; ObjectID = \"kCi-pf-mkc\";",
       "extractionState" : "extracted_with_value",
