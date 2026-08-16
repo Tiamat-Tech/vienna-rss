@@ -42,4 +42,15 @@ final class MainWindow: NSWindow {
         }
     }
 
+    override func selectNextTab(_ sender: Any?) {
+        if let browser = MainWindowController.shared.browser {
+            browser.showNextTab()
+        }
+    }
+
+    override func selectPreviousTab(_ sender: Any?) {
+        if let browser = MainWindowController.shared.browser {
+            browser.showPreviousTab()
+        }
+    }
 }
