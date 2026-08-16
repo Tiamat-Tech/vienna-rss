@@ -1707,8 +1707,9 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
     NSEventModifierFlags flags = event.modifierFlags;
 	switch (keyChar) {
 		case NSLeftArrowFunctionKey:
-            if (flags & (NSEventModifierFlagCommand | NSEventModifierFlagOption)) {
-				return NO;
+            if ((flags & NSEventModifierFlagCommand) && (flags & NSEventModifierFlagOption)) {
+                [self.mainWindow selectPreviousTab:nil];
+                return YES;
 			} else {
 				if (self.mainWindow.firstResponder == ((NSView<BaseView> *)self.browser.primaryTab.view).mainView) {
 					[self.mainWindow makeFirstResponder:self.foldersTree.mainView];
@@ -1718,8 +1719,9 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 			return NO;
 			
 		case NSRightArrowFunctionKey:
-            if (flags & (NSEventModifierFlagCommand | NSEventModifierFlagOption)) {
-				return NO;
+            if ((flags & NSEventModifierFlagCommand) && (flags & NSEventModifierFlagOption)) {
+                [self.mainWindow selectNextTab:nil];
+                return YES;
 			} else {
 				if (self.mainWindow.firstResponder == self.foldersTree.mainView) {
 					[self.browser switchToPrimaryTab];
