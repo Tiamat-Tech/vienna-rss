@@ -2245,22 +2245,6 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	[self.browser switchToPrimaryTab];
 }
 
-/* previousTab
- * Display the previous tab, if there is one.
- */
--(IBAction)previousTab:(id)sender
-{
-	[self.browser showPreviousTab];
-}
-
-/* nextTab
- * Display the next tab, if there is one.
- */
--(IBAction)nextTab:(id)sender
-{
-	[self.browser showNextTab];
-}
-
 /* closeAllTabs
  * Closes all tab windows.
  */
@@ -2858,10 +2842,6 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	} else if (theAction == @selector(editFolder:)) {
 		Folder * folder = [db folderFromID:self.foldersTree.actualSelection];
 		return folder && (folder.type == VNAFolderTypeSmart || folder.type == VNAFolderTypeRSS) && !db.readOnly && isMainWindowVisible;
-	} else if (theAction == @selector(previousTab:)) {
-		return isMainWindowVisible && self.browser.browserTabCount > 1;
-	} else if (theAction == @selector(nextTab:)) {
-		return isMainWindowVisible && self.browser.browserTabCount > 1;
 	} else if (theAction == @selector(closeActiveTab:)) {
 		return isMainWindowVisible && !isArticleView;
 	} else if (theAction == @selector(closeAllTabs:)) {

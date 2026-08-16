@@ -71,8 +71,6 @@
 -(IBAction)cancelAllRefreshes:(id)sender;
 -(IBAction)openStylesPage:(id)sender;
 -(IBAction)showMainWindow:(id)sender;
--(IBAction)previousTab:(id)sender;
--(IBAction)nextTab:(id)sender;
 -(IBAction)closeActiveTab:(id)sender;
 -(IBAction)closeAllTabs:(id)sender;
 - (IBAction)reopenLastClosedTab:(id)sender;
