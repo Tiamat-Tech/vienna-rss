@@ -52,6 +52,18 @@ class CustomWKWebView: WKWebView {
         getTextSelection()
     }
 
+    // for some reason, WKWebView intercepts ⌃ ⇥ and ⌃ ⇧ ⇥ without passing them down the NSReponder chain
+    // cf. https://stackoverflow.com/a/72404941/1615647
+    @objc
+    func selectNextKeyView(_ sender: Any?) {
+        self.window?.selectNextTab(sender)
+    }
+
+    @objc
+    func selectPreviousKeyView(_ sender: Any?) {
+        self.window?.selectPreviousTab(sender)
+    }
+
     private let usesMinimumFontSizeObservation: NSKeyValueObservation
     private let minimumFontSizeObservation: NSKeyValueObservation
     private var useJavaScriptObservation: NSKeyValueObservation?
