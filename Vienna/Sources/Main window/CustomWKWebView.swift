@@ -64,6 +64,28 @@ class CustomWKWebView: WKWebView {
         self.window?.selectPreviousTab(sender)
     }
 
+    // work around WKWebView also intercepting Command–Option–Left and Command–Option–Right
+    // and have them act as legacy key combos for switching between tabs
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        let isCommandOption = flags.contains(.command) && flags.contains(.option)
+        let leftArrowKeyCode: UInt16 = 123
+        let rightArrowKeyCode: UInt16 = 124
+
+        if isCommandOption {
+            if event.keyCode == leftArrowKeyCode {
+                // Handle Command-Option-Left
+                self.window?.selectPreviousTab(nil)
+                return true
+            } else if event.keyCode == rightArrowKeyCode {
+                // Handle Command-Option-Right
+                self.window?.selectNextTab(nil)
+                return true
+            }
+        }
+        return super.performKeyEquivalent(with: event)
+    }
+
     private let usesMinimumFontSizeObservation: NSKeyValueObservation
     private let minimumFontSizeObservation: NSKeyValueObservation
     private var useJavaScriptObservation: NSKeyValueObservation?
