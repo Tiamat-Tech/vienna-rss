@@ -5,8 +5,10 @@
 
 [Vienna](https://www.vienna-rss.com) is an RSS/Atom/JSON Feed reader for macOS.
 
+Vienna offers an experience modeled after Apple Mail: quickly scan feed summaries, then open individual articles for deep reading within a simplified browser view.
+
 Vienna can connect directly to the websites you want to track.
-Additionally or alternatively, you can also sync with a server supporting the [Open Reader API](http://rss-sync.github.io/Open-Reader-API/rssconsensus/) (an adaptation of the now deceased Google Reader API). Vienna has been successfully tested with BazQux.com, FreshRSS.org, FeedHQ.org, InoReader.com and TheOldReader.com.
+Additionally/alternatively, you can sync with a cloud based server supporting the [Open Reader API](http://rss-sync.github.io/Open-Reader-API/rssconsensus/) (an adaptation of the now deceased Google Reader API). Vienna has been successfully tested with BazQux.com, FreshRSS.org, FeedHQ.org, InoReader.com and TheOldReader.com.
 
 
 Compatibility
@@ -52,11 +54,11 @@ Contributing
 
 Want to contribute? Great! There are many ways you can, even if you aren't a developer.
 
-This project has strict rules regarding usage of so-called "AI". Please see the [LLM usage policy](LLM-USAGE-POLICY.md).
+This project has strict rules regarding usage of so-called "AI". Please see the [LLM usage policy](./Documentation/LLM-Usage-Policy.md).
 
 ### Writing code
 
-Please check [CONTRIBUTING.md](CONTRIBUTING.md).
+Please check [Contributing.md](./Documentation/Contributing.md). An entry point to the project's structure is in [Architecture.md](./Documentation/Architecture.md).
 
 ### Localizing ###
 
