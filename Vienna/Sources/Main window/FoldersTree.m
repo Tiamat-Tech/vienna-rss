@@ -825,69 +825,83 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
 	[self.controller.browser switchToPrimaryTab];
 }
 
+// This is the common pasteboard code for a TreeNode item
+- (id<NSPasteboardWriting>)pasteboardWriterForItem:(id)item
+{
+    NSPasteboardItem *pboardItem = [[NSPasteboardItem alloc] init];
+    NSMutableArray *externalDragData = [NSMutableArray array];
+    NSMutableArray *internalDragData = [NSMutableArray array];
+    NSMutableArray *arrayOfURLs = [NSMutableArray array];
+    NSMutableArray *arrayOfTitles = [NSMutableArray array];
+
+    TreeNode *node = (TreeNode *)item;
+    Folder *folder = node.folder;
+    NSString *feedURL = folder.feedURL;
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+
+
+    if (folder.type == VNAFolderTypeRSS
+        || folder.type == VNAFolderTypeOpenReader
+        || folder.type == VNAFolderTypeSmart
+        || folder.type == VNAFolderTypeGroup
+        || folder.type == VNAFolderTypeSearch
+        || folder.type == VNAFolderTypeTrash)
+    {
+        [internalDragData addObject:@(node.nodeId)];
+    }
+
+    if (folder.type == VNAFolderTypeRSS
+        || folder.type == VNAFolderTypeOpenReader)
+    {
+        // dictionary entries include folder details in the standard
+        // RSS item format defined by Ranchero NetNewsWire.
+        // See http://ranchero.com/netnewswire/rssclipboard.php for more details.
+        [dict setValue:folder.name forKey:@"sourceName"];
+        [dict setValue:folder.description forKey:@"sourceDescription"];
+        [dict setValue:feedURL forKey:@"sourceRSSURL"];
+        [dict setValue:folder.homePage forKey:@"sourceHomeURL"];
+        [externalDragData addObject:dict];
+
+        NSURL *safariURL = [NSURL URLWithString:feedURL];
+        if (safariURL != nil && !safariURL.fileURL) {
+            NSString *urlString = feedURL;
+            if (![@"feed" isEqualToString:safariURL.scheme]) {
+                urlString = [NSString stringWithFormat:@"feed:%@", safariURL.resourceSpecifier];
+            }
+            [arrayOfURLs addObject:urlString];
+            [arrayOfTitles addObject:folder.name];
+        }
+    }
+    [pboardItem setPropertyList:internalDragData forType:VNAPasteboardTypeFolderList];
+    [pboardItem setPropertyList:externalDragData forType:VNAPasteboardTypeRSSSource];
+    NSArray *webURLsWithTitles = @[arrayOfURLs, arrayOfTitles];
+    [pboardItem setPropertyList:webURLsWithTitles forType:VNAPasteboardTypeWebURLsWithTitles];
+    [pboardItem setString:feedURL forType:NSPasteboardTypeString];
+
+    return pboardItem;
+}
+
 /* copyTableSelection
- * This is the common copy selection code. We build an array of dictionary entries each of
- * which include details of each selected folder in the standard RSS item format defined by
- * Ranchero NetNewsWire. See http://ranchero.com/netnewswire/rssclipboard.php for more details.
  */
 -(BOOL)copyTableSelection:(NSArray *)items toPasteboard:(NSPasteboard *)pboard
 {
 	NSInteger count = items.count;
-	NSMutableArray * externalDragData = [NSMutableArray arrayWithCapacity:count];
-	NSMutableArray * internalDragData = [NSMutableArray arrayWithCapacity:count];
-	NSMutableString * stringDragData = [NSMutableString string];
-	NSMutableArray * arrayOfURLs = [NSMutableArray arrayWithCapacity:count];
-	NSMutableArray * arrayOfTitles = [NSMutableArray arrayWithCapacity:count];
+	NSMutableArray * pbItems = [NSMutableArray arrayWithCapacity:count];
 	NSInteger index;
 
 	// We'll create the types of data on the clipboard.
-	[pboard declareTypes:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString] owner:self];
+    [pboard prepareForNewContentsWithOptions:NSPasteboardContentsCurrentHostOnly];
 
-	// Create an array of NSNumber objects containing the selected folder IDs.
 	NSInteger countOfItems = 0;
 	for (index = 0; index < count; ++index) {
-		TreeNode * node = items[index];
-		Folder * folder = node.folder;
-
-		if (folder.type == VNAFolderTypeRSS
-            || folder.type == VNAFolderTypeOpenReader
-            || folder.type == VNAFolderTypeSmart
-            || folder.type == VNAFolderTypeGroup
-            || folder.type == VNAFolderTypeSearch
-            || folder.type == VNAFolderTypeTrash) {
-			[internalDragData addObject:@(node.nodeId)];
-			++countOfItems;
-		}
-
-		if (folder.type == VNAFolderTypeRSS
-            || folder.type == VNAFolderTypeOpenReader) {
-			NSString * feedURL = folder.feedURL;
-			
-			NSMutableDictionary * dict = [NSMutableDictionary dictionary];
-			[dict setValue:folder.name forKey:@"sourceName"];
-			[dict setValue:folder.description forKey:@"sourceDescription"];
-			[dict setValue:feedURL forKey:@"sourceRSSURL"];
-			[dict setValue:folder.homePage forKey:@"sourceHomeURL"];
-			[externalDragData addObject:dict];
-
-			[stringDragData appendFormat:@"%@\n", feedURL];
-			
-			NSURL * safariURL = [NSURL URLWithString:feedURL];
-			if (safariURL != nil && !safariURL.fileURL) {
-				if (![@"feed" isEqualToString:safariURL.scheme]) {
-					feedURL = [NSString stringWithFormat:@"feed:%@", safariURL.resourceSpecifier];
-				}
-				[arrayOfURLs addObject:feedURL];
-				[arrayOfTitles addObject:folder.name];
-			}
+		NSPasteboardItem *pboardItem = (NSPasteboardItem *)[self pasteboardWriterForItem:items[index]];
+		if (pboardItem.types) {
+			[pbItems addObject:pboardItem];
+		    ++countOfItems;
 		}
 	}
 
-	// Copy the data to the pasteboard 
-	[pboard setPropertyList:externalDragData forType:VNAPasteboardTypeRSSSource];
-	[pboard setString:stringDragData forType:NSPasteboardTypeString];
-	[pboard setPropertyList:internalDragData forType:VNAPasteboardTypeFolderList]; 
-	[pboard setPropertyList:@[arrayOfURLs, arrayOfTitles] forType:VNAPasteboardTypeWebURLsWithTitles];
+	[pboard writeObjects:pbItems];
 	return countOfItems > 0; 
 }
 
@@ -1348,12 +1362,10 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     return [node childByIndex:index];
 }
 
-// Collect the selected folders ready for dragging.
-- (BOOL)outlineView:(NSOutlineView *)outlineView
-         writeItems:(NSArray *)items
-       toPasteboard:(NSPasteboard *)pasteboard
+// Provides a pasteboard writer for dragging folder items
+- (id<NSPasteboardWriting>)outlineView:(NSOutlineView *)outlineView pasteboardWriterForItem:(id)item
 {
-    return [self copyTableSelection:items toPasteboard:pasteboard];
+    return [self pasteboardWriterForItem:item];
 }
 
 // MARK: - NSOutlineViewDelegate
