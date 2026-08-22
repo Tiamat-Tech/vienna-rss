@@ -1219,9 +1219,23 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
         return YES;
     }
     if ([type isEqualToString:VNAPasteboardTypeFolderList]) {
+        // This is an internal drag
         Database *db = [Database sharedManager];
         NSArray *arrayOfSources = [pb propertyListForType:type];
         NSInteger count = arrayOfSources.count;
+        // hack to extend drag if we have a multiple items selection being dragged
+        if (count == 1 && [self countOfSelectedFolders] > 1) {
+            NSMutableArray * selectedFolderIDs = [NSMutableArray array];
+            for (Folder *folder in self.selectedFolders) {
+                    [selectedFolderIDs addObject:@(folder.itemId)];
+            }
+            // verify there is a match between the selection and the dragged item
+            if ([selectedFolderIDs containsObject:arrayOfSources[0]]) {
+                arrayOfSources = selectedFolderIDs;
+                count = arrayOfSources.count;
+            }
+        }
+
         NSInteger index;
         NSInteger predecessorId = (childIndex > 0) ? [node childByIndex:(childIndex - 1)].nodeId : 0;
 
