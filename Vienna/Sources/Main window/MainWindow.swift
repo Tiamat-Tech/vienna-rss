@@ -37,9 +37,26 @@ final class MainWindow: NSWindow {
             }
 
             return true
-        } else {
+        } else if menuItem.action == #selector(selectNextTab(_:)) || menuItem.action == #selector(selectPreviousTab(_:))  {
+            if let count = MainWindowController.shared.browser?.browserTabCount {
+                return count > 1
+            } else {
+                return false
+            }
+       } else {
             return super.validateMenuItem(menuItem)
         }
     }
 
+    override func selectNextTab(_ sender: Any?) {
+        if let browser = MainWindowController.shared.browser {
+            browser.showNextTab()
+        }
+    }
+
+    override func selectPreviousTab(_ sender: Any?) {
+        if let browser = MainWindowController.shared.browser {
+            browser.showPreviousTab()
+        }
+    }
 }

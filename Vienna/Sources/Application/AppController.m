@@ -1707,8 +1707,9 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
     NSEventModifierFlags flags = event.modifierFlags;
 	switch (keyChar) {
 		case NSLeftArrowFunctionKey:
-            if (flags & (NSEventModifierFlagCommand | NSEventModifierFlagOption)) {
-				return NO;
+            if ((flags & NSEventModifierFlagCommand) && (flags & NSEventModifierFlagOption)) {
+                [self.mainWindow selectPreviousTab:nil];
+                return YES;
 			} else {
 				if (self.mainWindow.firstResponder == ((NSView<BaseView> *)self.browser.primaryTab.view).mainView) {
 					[self.mainWindow makeFirstResponder:self.foldersTree.mainView];
@@ -1718,8 +1719,9 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 			return NO;
 			
 		case NSRightArrowFunctionKey:
-            if (flags & (NSEventModifierFlagCommand | NSEventModifierFlagOption)) {
-				return NO;
+            if ((flags & NSEventModifierFlagCommand) && (flags & NSEventModifierFlagOption)) {
+                [self.mainWindow selectNextTab:nil];
+                return YES;
 			} else {
 				if (self.mainWindow.firstResponder == self.foldersTree.mainView) {
 					[self.browser switchToPrimaryTab];
@@ -2243,22 +2245,6 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 -(void)viewArticlesTab:(id)sender
 {
 	[self.browser switchToPrimaryTab];
-}
-
-/* previousTab
- * Display the previous tab, if there is one.
- */
--(IBAction)previousTab:(id)sender
-{
-	[self.browser showPreviousTab];
-}
-
-/* nextTab
- * Display the next tab, if there is one.
- */
--(IBAction)nextTab:(id)sender
-{
-	[self.browser showNextTab];
 }
 
 /* closeAllTabs
@@ -2858,10 +2844,6 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	} else if (theAction == @selector(editFolder:)) {
 		Folder * folder = [db folderFromID:self.foldersTree.actualSelection];
 		return folder && (folder.type == VNAFolderTypeSmart || folder.type == VNAFolderTypeRSS) && !db.readOnly && isMainWindowVisible;
-	} else if (theAction == @selector(previousTab:)) {
-		return isMainWindowVisible && self.browser.browserTabCount > 1;
-	} else if (theAction == @selector(nextTab:)) {
-		return isMainWindowVisible && self.browser.browserTabCount > 1;
 	} else if (theAction == @selector(closeActiveTab:)) {
 		return isMainWindowVisible && !isArticleView;
 	} else if (theAction == @selector(closeAllTabs:)) {
