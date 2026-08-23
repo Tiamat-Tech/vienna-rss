@@ -877,6 +877,8 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     NSArray *webURLsWithTitles = @[arrayOfURLs, arrayOfTitles];
     [pboardItem setPropertyList:webURLsWithTitles forType:VNAPasteboardTypeWebURLsWithTitles];
     [pboardItem setString:feedURL forType:NSPasteboardTypeString];
+    [pboardItem setString:feedURL forType:NSPasteboardTypeURL];
+    [pboardItem setString:folder.name forType:VNAPasteboardTypeURLName];
 
     return pboardItem;
 }
@@ -1159,7 +1161,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
             proposedChildIndex:(NSInteger)index
 {
     NSPasteboard * pb = [info draggingPasteboard];
-    NSString * type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString]];
+    NSString * type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeURL, NSPasteboardTypeString]];
     NSDragOperation dragType = ([type isEqualToString:VNAPasteboardTypeFolderList]) ? NSDragOperationMove : NSDragOperationCopy;
 
     TreeNode * node = (TreeNode *)item;
@@ -1202,7 +1204,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
 {
     __block NSInteger childIndex = index;
     NSPasteboard *pb = [info draggingPasteboard];
-    NSString *type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString]];
+    NSString *type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeURL, NSPasteboardTypeString]];
     TreeNode *node = item ? (TreeNode *)item : self.rootNode;
 
     NSInteger parentId = node.nodeId;
@@ -1211,7 +1213,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     }
 
     // Check the type
-    if ([type isEqualToString:NSPasteboardTypeString]) {
+    if ([type isEqualToString:NSPasteboardTypeURL] || [type isEqualToString:NSPasteboardTypeString]) {
         // This is possibly a URL that we'll handle as a potential feed subscription. It's
         // not our call to make though.
         NSInteger predecessorId = (childIndex > 0) ? [node childByIndex:(childIndex - 1)].nodeId : 0;
