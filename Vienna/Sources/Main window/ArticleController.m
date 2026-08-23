@@ -556,8 +556,8 @@ static void *VNAArticleControllerObserverContext = &VNAArticleControllerObserver
 	NSString * guidOfArticleToPreserve = articleToPreserve.guid;
 	
 	NSInteger filterMode = [Preferences standardPreferences].filterMode;
-	for (NSInteger index = filteredArray.count - 1; index >= 0; --index) {
-		Article * article = filteredArray[index];
+	for (NSInteger index = filteredArray.count; index > 0; --index) {
+		Article * article = filteredArray[index - 1];
 		if (guidOfArticleToPreserve != nil
 			&& article.folderId == articleToPreserve.folderId 
 			&& [article.guid isEqualToString:guidOfArticleToPreserve]) {
