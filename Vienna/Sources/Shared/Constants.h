@@ -120,7 +120,6 @@ extern NSInteger const MA_Default_AutoExpireDuration;
 extern NSInteger const MA_Default_Check_Frequency;
 extern NSInteger const MA_Default_ConcurrentDownloads;
 
-extern NSPasteboardType const VNAPasteboardTypeRSSItem;
 extern NSPasteboardType const VNAPasteboardTypeFolderList;
 extern NSPasteboardType const VNAPasteboardTypeURLName;
 extern NSPasteboardType const VNAPasteboardTypeWebURLsWithTitles;

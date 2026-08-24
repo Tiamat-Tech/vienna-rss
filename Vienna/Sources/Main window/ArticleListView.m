@@ -1361,22 +1361,17 @@ static void *VNAArticleListViewObserverContext = &VNAArticleListViewObserverCont
 }
 
 /* copyTableSelection
- * This is the common copy selection code. We build an array of dictionary entries each of
- * which include details of each selected article in the standard RSS item format defined by
- * Ranchero NetNewsWire. See http://ranchero.com/netnewswire/rssclipboard.php for more details.
  */
 -(BOOL)copyTableSelection:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pboard
 {
-	NSMutableArray * arrayOfArticles = [[NSMutableArray alloc] init];
 	NSMutableArray * arrayOfURLs = [[NSMutableArray alloc] init];
 	NSMutableArray * arrayOfTitles = [[NSMutableArray alloc] init];
 	NSMutableString * fullHTMLText = [[NSMutableString alloc] init];
 	NSMutableString * fullPlainText = [[NSMutableString alloc] init];
-	Database * db = [Database sharedManager];
 	NSInteger count = rowIndexes.count;
 	
 	// Set up the pasteboard
-	[pboard declareTypes:@[VNAPasteboardTypeRSSItem, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString, NSPasteboardTypeHTML]
+	[pboard declareTypes:@[VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString, NSPasteboardTypeHTML]
                    owner:self];
     if (count == 1) {
         [pboard addTypes:@[NSPasteboardTypeURL, VNAPasteboardTypeURLName]
@@ -1391,22 +1386,12 @@ static void *VNAArticleListViewObserverContext = &VNAArticleListViewObserverCont
 	NSUInteger msgIndex = rowIndexes.firstIndex;
 	while (msgIndex != NSNotFound) {
 		Article * thisArticle = self.articleController.allArticles[msgIndex];
-		Folder * folder = [db folderFromID:thisArticle.folderId];
 		NSString * msgText = thisArticle.body;
 		NSString * msgTitle = thisArticle.title;
 		NSString * msgLink = thisArticle.link;
 		
 		[arrayOfURLs addObject:msgLink];
 		[arrayOfTitles addObject:msgTitle];
-
-		NSMutableDictionary * articleDict = [NSMutableDictionary dictionary];
-		[articleDict setValue:msgTitle forKey:@"rssItemTitle"];
-		[articleDict setValue:msgLink forKey:@"rssItemLink"];
-		[articleDict setValue:msgText forKey:@"rssItemDescription"];
-		[articleDict setValue:folder.name forKey:@"sourceName"];
-		[articleDict setValue:folder.homePage forKey:@"sourceHomeURL"];
-		[articleDict setValue:folder.feedURL forKey:@"sourceRSSURL"];
-		[arrayOfArticles addObject:articleDict];
 
 		// Plain text
         [fullPlainText appendFormat:@"%@\n%@\n\n", msgTitle, thisArticle.summary];
@@ -1430,7 +1415,6 @@ static void *VNAArticleListViewObserverContext = &VNAArticleListViewObserverCont
 	[fullHTMLText appendString:@"</body></html>"];
 
 	// Put string on the pasteboard for external drops.
-	[pboard setPropertyList:arrayOfArticles forType:VNAPasteboardTypeRSSItem];
 	[pboard setPropertyList:@[arrayOfURLs, arrayOfTitles] forType:VNAPasteboardTypeWebURLsWithTitles];
 	[pboard setString:fullPlainText forType:NSPasteboardTypeString];
     [pboard setString:fullHTMLText.vna_stringByEscapingExtendedCharacters forType:NSPasteboardTypeHTML];
