@@ -32,6 +32,7 @@
 #import "Database.h"
 #import "TreeNode.h"
 #import "Folder.h"
+#import "SubscriptionModel.h"
 #import "Vienna-Swift.h"
 
 NSString * const MAPref_FeedListSizeMode = @"FeedListSizeMode";
@@ -1196,8 +1197,10 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     if ([type isEqualToString:NSPasteboardTypeURL] || [type isEqualToString:NSPasteboardTypeString]) {
         // This is possibly a URL that we'll handle as a potential feed subscription. It's
         // not our call to make though.
+        NSURL *targetURL = [NSURL URLWithString:[pb stringForType:type]];
+        targetURL = [[[SubscriptionModel alloc] init] verifiedFeedURLFromURL:targetURL];
         NSInteger predecessorId = (childIndex > 0) ? [node childByIndex:(childIndex - 1)].nodeId : 0;
-        [APPCONTROLLER createNewSubscription:[pb stringForType:type] underFolder:parentId afterChild:predecessorId];
+        [APPCONTROLLER createNewSubscription:targetURL.absoluteString underFolder:parentId afterChild:predecessorId];
         return YES;
     }
     if ([type isEqualToString:VNAPasteboardTypeFolderList]) {
@@ -1244,7 +1247,8 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
         BOOL result = [self moveFolders:array withOpenReaderSync:YES];
         return result;
     }
-    if ([type isEqualToString:@"WebURLsWithTitlesPboardType"]) {
+    if ([type isEqualToString:VNAPasteboardTypeWebURLsWithTitles]) {
+        // This is the legacy array of URLs / array of titles exported by Safari ("WebURLsWithTitlesPboardType")
         Database *dbManager = [Database sharedManager];
         NSArray *webURLsWithTitles = [pb propertyListForType:type];
         NSArray *arrayOfURLs = webURLsWithTitles[0];
@@ -1256,12 +1260,16 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
         for (index = 0; index < count; ++index) {
             NSString *feedTitle = arrayOfTitles[index];
             NSString *feedURL = arrayOfURLs[index];
-            NSURL *draggedURL = [NSURL URLWithString:feedURL];
-            if (draggedURL.scheme && [draggedURL.scheme isEqualToString:@"feed"]) {
-                feedURL = [NSString stringWithFormat:@"http:%@", draggedURL.resourceSpecifier];
+            NSURL *targetURL = [NSURL URLWithString:feedURL];
+            targetURL = [[[SubscriptionModel alloc] init] verifiedFeedURLFromURL:targetURL];
+            if (targetURL.scheme && [targetURL.scheme isEqualToString:@"feed"]) {
+                feedURL = [NSString stringWithFormat:@"http:%@", targetURL.resourceSpecifier];
+                targetURL = [NSURL URLWithString:feedURL];
+            } else {
+                feedURL = targetURL.absoluteString;
             }
 
-            if (![dbManager folderFromFeedURL:feedURL]) {
+            if (targetURL && ![dbManager folderFromFeedURL:feedURL]) {
                 NSInteger predecessorId = (childIndex > 0) ? [node childByIndex:(childIndex - 1)].nodeId : 0;
                 NSInteger newFolderId = [dbManager addRSSFolder:feedTitle underParent:parentId afterChild:predecessorId subscriptionURL:feedURL];
                 if (newFolderId > 0) {
