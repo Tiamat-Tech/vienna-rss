@@ -557,13 +557,14 @@ static void *VNAArticleControllerObserverContext = &VNAArticleControllerObserver
 	
 	NSInteger filterMode = [Preferences standardPreferences].filterMode;
 	for (NSInteger index = filteredArray.count; index > 0; --index) {
-		Article * article = filteredArray[index - 1];
+        NSInteger tabIndex = index - 1;
+        Article * article = filteredArray[tabIndex];
 		if (guidOfArticleToPreserve != nil
 			&& article.folderId == articleToPreserve.folderId 
 			&& [article.guid isEqualToString:guidOfArticleToPreserve]) {
 			guidOfArticleToPreserve = nil;
 		} else if ([self filterArticle:article usingMode:filterMode] == false) {
-			[filteredArray removeObjectAtIndex:index];
+			[filteredArray removeObjectAtIndex:tabIndex];
         }
 	}
 	
