@@ -136,7 +136,6 @@ AEKeyword const DataItemSourceFeedURL = 'furl';
 
 // Custom pasteboard types
 NSPasteboardType const VNAPasteboardTypeFolderList = @"uk.co.opencommunity.vienna2.feed.internal";
-NSPasteboardType const VNAPasteboardTypeRSSSource = @"CorePasteboardFlavorType 0x52535373";
 NSPasteboardType const VNAPasteboardTypeRSSItem = @"CorePasteboardFlavorType 0x52535369";
 NSPasteboardType const VNAPasteboardTypeURLName = @"public.url-name";
 NSPasteboardType const VNAPasteboardTypeWebURLsWithTitles = @"WebURLsWithTitlesPboardType";

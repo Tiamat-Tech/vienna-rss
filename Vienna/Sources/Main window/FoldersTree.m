@@ -97,7 +97,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     [self updateCellSize:[userDefaults integerForKey:MAPref_FeedListSizeMode]];
 
 	// Register for dragging
-	[self.outlineView registerForDraggedTypes:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString]];
+	[self.outlineView registerForDraggedTypes:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString]];
 	[self.outlineView setVerticalMotionCanBeginDrag:YES];
 	
 	// Make sure selected row is visible
@@ -829,7 +829,6 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
 - (id<NSPasteboardWriting>)pasteboardWriterForItem:(id)item
 {
     NSPasteboardItem *pboardItem = [[NSPasteboardItem alloc] init];
-    NSMutableArray *externalDragData = [NSMutableArray array];
     NSMutableArray *internalDragData = [NSMutableArray array];
     NSMutableArray *arrayOfURLs = [NSMutableArray array];
     NSMutableArray *arrayOfTitles = [NSMutableArray array];
@@ -838,8 +837,6 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     TreeNode *node = (TreeNode *)item;
     Folder *folder = node.folder;
     NSString *feedURL = folder.feedURL;
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-
 
     if (folder.type == VNAFolderTypeRSS
         || folder.type == VNAFolderTypeOpenReader
@@ -854,15 +851,6 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     if (folder.type == VNAFolderTypeRSS
         || folder.type == VNAFolderTypeOpenReader)
     {
-        // dictionary entries include folder details in the standard
-        // RSS item format defined by Ranchero NetNewsWire.
-        // See http://ranchero.com/netnewswire/rssclipboard.php for more details.
-        [dict setValue:folder.name forKey:@"sourceName"];
-        [dict setValue:folder.description forKey:@"sourceDescription"];
-        [dict setValue:feedURL forKey:@"sourceRSSURL"];
-        [dict setValue:folder.homePage forKey:@"sourceHomeURL"];
-        [externalDragData addObject:dict];
-
         NSURL *safariURL = [NSURL URLWithString:feedURL];
         if (safariURL != nil && !safariURL.fileURL) {
             NSString *urlString = feedURL;
@@ -879,7 +867,6 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
         rtfData = [attributedString RTFFromRange:range documentAttributes:@{}];
     }
     [pboardItem setPropertyList:internalDragData forType:VNAPasteboardTypeFolderList];
-    [pboardItem setPropertyList:externalDragData forType:VNAPasteboardTypeRSSSource];
     NSArray *webURLsWithTitles = @[arrayOfURLs, arrayOfTitles];
     [pboardItem setPropertyList:webURLsWithTitles forType:VNAPasteboardTypeWebURLsWithTitles];
     [pboardItem setString:feedURL forType:NSPasteboardTypeString];
@@ -1168,7 +1155,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
             proposedChildIndex:(NSInteger)index
 {
     NSPasteboard * pb = [info draggingPasteboard];
-    NSString * type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeURL, NSPasteboardTypeString]];
+    NSString * type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeURL, NSPasteboardTypeString]];
     NSDragOperation dragType = ([type isEqualToString:VNAPasteboardTypeFolderList]) ? NSDragOperationMove : NSDragOperationCopy;
 
     TreeNode * node = (TreeNode *)item;
@@ -1211,7 +1198,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
 {
     __block NSInteger childIndex = index;
     NSPasteboard *pb = [info draggingPasteboard];
-    NSString *type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeURL, NSPasteboardTypeString]];
+    NSString *type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeURL, NSPasteboardTypeString]];
     TreeNode *node = item ? (TreeNode *)item : self.rootNode;
 
     NSInteger parentId = node.nodeId;
@@ -1270,51 +1257,6 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
         // Do the move
         BOOL result = [self moveFolders:array withOpenReaderSync:YES];
         return result;
-    }
-    if ([type isEqualToString:VNAPasteboardTypeRSSSource]) {
-        Database *dbManager = [Database sharedManager];
-        NSArray *arrayOfSources = [pb propertyListForType:type];
-        NSInteger count = arrayOfSources.count;
-        NSInteger index;
-
-        // This is an RSS drag using the protocol defined by Ranchero for NetNewsWire. See
-        // http://ranchero.com/netnewswire/rssclipboard.php for more details.
-        //
-        __block NSInteger folderToSelect = -1;
-        for (index = 0; index < count; ++index) {
-            NSDictionary *sourceItem = arrayOfSources[index];
-            NSString *feedTitle = [sourceItem valueForKey:@"sourceName"];
-            NSString *feedHomePage = [sourceItem valueForKey:@"sourceHomeURL"];
-            NSString *feedURL = [sourceItem valueForKey:@"sourceRSSURL"];
-            NSString *feedDescription = [sourceItem valueForKey:@"sourceDescription"];
-
-            if (feedURL && ![dbManager folderFromFeedURL:feedURL]) {
-                NSInteger predecessorId = (childIndex > 0) ? [node childByIndex:(childIndex - 1)].nodeId : 0;
-                NSInteger folderId = [dbManager addRSSFolder:feedTitle underParent:parentId afterChild:predecessorId subscriptionURL:feedURL];
-                if (feedDescription) {
-                    [dbManager setDescription:feedDescription forFolder:folderId];
-                }
-                if (feedHomePage) {
-                    [dbManager setHomePage:feedHomePage forFolder:folderId];
-                }
-                if (folderId > 0) {
-                    folderToSelect = folderId;
-                }
-                ++childIndex;
-            }
-        }
-
-        // If parent was a group, expand it now
-        if (parentId != VNAFolderTypeRoot) {
-            [self.outlineView expandItem:[self.rootNode nodeFromID:parentId]];
-        }
-
-        // Select a new folder
-        if (folderToSelect > 0) {
-            [self selectFolder:folderToSelect];
-        }
-
-        return YES;
     }
     if ([type isEqualToString:@"WebURLsWithTitlesPboardType"]) {
         Database *dbManager = [Database sharedManager];
