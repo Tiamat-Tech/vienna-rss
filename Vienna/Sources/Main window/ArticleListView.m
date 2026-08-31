@@ -1360,66 +1360,83 @@ static void *VNAArticleListViewObserverContext = &VNAArticleListViewObserverCont
 	}
 }
 
+// This is the common pasteboard code for an article item
+- (id<NSPasteboardWriting>)pasteboardWriterForIndex:(NSUInteger)msgIndex
+{
+    NSPasteboardItem *pboardItem = [[NSPasteboardItem alloc] init];
+
+    Article *thisArticle = self.articleController.allArticles[msgIndex];
+    NSString *msgTitle = thisArticle.title;
+    NSString *msgLink = thisArticle.link;
+
+    if (msgLink) {
+        [pboardItem setString:thisArticle.link forType:NSPasteboardTypeURL];
+    }
+    if (msgTitle) {
+        [pboardItem setString:msgTitle forType:VNAPasteboardTypeURLName];
+    }
+    // Plain text
+    NSString *fullPlainText = [NSString stringWithFormat:@"%@\n%@\n\n", msgTitle, thisArticle.summary];
+    [pboardItem setString:fullPlainText forType:NSPasteboardTypeString];
+
+    // For HTML, this hack is needed for multiple selections
+    // because some apps will only recognize the first HTML element
+    // while others will require that the numbers match
+    if (msgIndex == articleList.selectedRowIndexes.firstIndex) {
+        [self addHTMLRecapToPasteboardItem:pboardItem];
+    } else {
+        [pboardItem setString:@"" forType:NSPasteboardTypeHTML];
+    }
+
+    return pboardItem;
+}
+
+// This creates recapitulative type attached to the first item of the selection
+- (void)addHTMLRecapToPasteboardItem:(NSPasteboardItem *)pboardItem
+{
+    NSIndexSet *rowIndexes = articleList.selectedRowIndexes;
+    NSMutableString *fullHTMLText = [NSMutableString stringWithFormat:@"<!DOCTYPE html><html><head>"
+                                                                      @"<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"></head><body>"];
+
+    NSUInteger rowIndex = rowIndexes.firstIndex;
+    while (rowIndex != NSNotFound) {
+        Article *article = self.articleController.allArticles[rowIndex];
+
+        [fullHTMLText appendFormat:@"<header><div class=\"info\"><a href=\"%@\">%@</a></div></header>"
+                                    "<div class=\"articleBodyStyle\">%@</div><br>",
+                                   article.link, article.title, article.body];
+        rowIndex = [rowIndexes indexGreaterThanIndex:rowIndex];
+    }
+
+    [fullHTMLText appendString:@"</body></html>"];
+    [pboardItem setString:fullHTMLText.vna_stringByEscapingExtendedCharacters forType:NSPasteboardTypeHTML];
+}
+
 /* copyTableSelection
  */
 -(BOOL)copyTableSelection:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pboard
 {
-	NSMutableArray * arrayOfURLs = [[NSMutableArray alloc] init];
-	NSMutableArray * arrayOfTitles = [[NSMutableArray alloc] init];
-	NSMutableString * fullHTMLText = [[NSMutableString alloc] init];
-	NSMutableString * fullPlainText = [[NSMutableString alloc] init];
 	NSInteger count = rowIndexes.count;
-	
-	// Set up the pasteboard
-	[pboard declareTypes:@[VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString, NSPasteboardTypeHTML]
-                   owner:self];
-    if (count == 1) {
-        [pboard addTypes:@[NSPasteboardTypeURL, VNAPasteboardTypeURLName]
-                   owner:self];
-    }
+	NSMutableArray * pbItems = [NSMutableArray arrayWithCapacity:count];
 
-	// Open the HTML string
-	[fullHTMLText appendString:@"<html style=\"font-family:sans-serif;\">"
-                                "<head><meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"></head><body>"];
-	
+	// Set up the pasteboard
+	[pboard prepareForNewContentsWithOptions:NSPasteboardContentsCurrentHostOnly];
+
+	NSInteger countOfItems = 0;
 	// Get all the articles that are being dragged
 	NSUInteger msgIndex = rowIndexes.firstIndex;
 	while (msgIndex != NSNotFound) {
-		Article * thisArticle = self.articleController.allArticles[msgIndex];
-		NSString * msgText = thisArticle.body;
-		NSString * msgTitle = thisArticle.title;
-		NSString * msgLink = thisArticle.link;
-		
-		[arrayOfURLs addObject:msgLink];
-		[arrayOfTitles addObject:msgTitle];
-
-		// Plain text
-        [fullPlainText appendFormat:@"%@\n%@\n\n", msgTitle, thisArticle.summary];
-		
-		// Add HTML version too.
-		[fullHTMLText appendFormat:@"<div class=\"info\"><a href=\"%@\">%@</a><div>"
-                                    "<div class=\"articleBodyStyle\">%@</div><br>", msgLink, msgTitle, msgText];
-		
-		if (count == 1) {
-            [pboard setString:msgLink forType:NSPasteboardTypeURL];
-			[pboard setString:msgTitle forType:VNAPasteboardTypeURLName];
-			
-			// Write the link to the pastboard.
-			[[NSURL URLWithString:msgLink] writeToPasteboard:pboard];
+		NSPasteboardItem *pboardItem = (NSPasteboardItem *)[self pasteboardWriterForIndex:msgIndex];
+		if (pboardItem.types) {
+			[pbItems addObject:pboardItem];
+		    ++countOfItems;
 		}
 
 		msgIndex = [rowIndexes indexGreaterThanIndex:msgIndex];
 	}
-	
-	// Close the HTML string
-	[fullHTMLText appendString:@"</body></html>"];
 
-	// Put string on the pasteboard for external drops.
-	[pboard setPropertyList:@[arrayOfURLs, arrayOfTitles] forType:VNAPasteboardTypeWebURLsWithTitles];
-	[pboard setString:fullPlainText forType:NSPasteboardTypeString];
-    [pboard setString:fullHTMLText.vna_stringByEscapingExtendedCharacters forType:NSPasteboardTypeHTML];
-
-	return YES;
+	[pboard writeObjects:pbItems];
+	return countOfItems > 0;
 }
 
 /* markedArticleRange
