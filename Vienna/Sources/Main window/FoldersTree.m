@@ -833,6 +833,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     NSMutableArray *internalDragData = [NSMutableArray array];
     NSMutableArray *arrayOfURLs = [NSMutableArray array];
     NSMutableArray *arrayOfTitles = [NSMutableArray array];
+    NSData *rtfData;
 
     TreeNode *node = (TreeNode *)item;
     Folder *folder = node.folder;
@@ -871,6 +872,11 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
             [arrayOfURLs addObject:urlString];
             [arrayOfTitles addObject:folder.name];
         }
+
+        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:folder.name];
+        NSRange range = NSMakeRange(0, folder.name.length);
+        [attributedString addAttribute:NSLinkAttributeName value:feedURL range:range];
+        rtfData = [attributedString RTFFromRange:range documentAttributes:@{}];
     }
     [pboardItem setPropertyList:internalDragData forType:VNAPasteboardTypeFolderList];
     [pboardItem setPropertyList:externalDragData forType:VNAPasteboardTypeRSSSource];
@@ -879,6 +885,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     [pboardItem setString:feedURL forType:NSPasteboardTypeString];
     [pboardItem setString:feedURL forType:NSPasteboardTypeURL];
     [pboardItem setString:folder.name forType:VNAPasteboardTypeURLName];
+    [pboardItem setData:rtfData forType:NSPasteboardTypeRTF];
 
     return pboardItem;
 }
