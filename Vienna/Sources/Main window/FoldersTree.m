@@ -830,8 +830,6 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
 {
     NSPasteboardItem *pboardItem = [[NSPasteboardItem alloc] init];
     NSMutableArray *internalDragData = [NSMutableArray array];
-    NSMutableArray *arrayOfURLs = [NSMutableArray array];
-    NSMutableArray *arrayOfTitles = [NSMutableArray array];
     NSData *rtfData;
 
     TreeNode *node = (TreeNode *)item;
@@ -851,24 +849,12 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     if (folder.type == VNAFolderTypeRSS
         || folder.type == VNAFolderTypeOpenReader)
     {
-        NSURL *safariURL = [NSURL URLWithString:feedURL];
-        if (safariURL != nil && !safariURL.fileURL) {
-            NSString *urlString = feedURL;
-            if (![@"feed" isEqualToString:safariURL.scheme]) {
-                urlString = [NSString stringWithFormat:@"feed:%@", safariURL.resourceSpecifier];
-            }
-            [arrayOfURLs addObject:urlString];
-            [arrayOfTitles addObject:folder.name];
-        }
-
         NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:folder.name];
         NSRange range = NSMakeRange(0, folder.name.length);
         [attributedString addAttribute:NSLinkAttributeName value:feedURL range:range];
         rtfData = [attributedString RTFFromRange:range documentAttributes:@{}];
     }
     [pboardItem setPropertyList:internalDragData forType:VNAPasteboardTypeFolderList];
-    NSArray *webURLsWithTitles = @[arrayOfURLs, arrayOfTitles];
-    [pboardItem setPropertyList:webURLsWithTitles forType:VNAPasteboardTypeWebURLsWithTitles];
     [pboardItem setString:feedURL forType:NSPasteboardTypeString];
     [pboardItem setString:feedURL forType:NSPasteboardTypeURL];
     [pboardItem setString:folder.name forType:VNAPasteboardTypeURLName];
