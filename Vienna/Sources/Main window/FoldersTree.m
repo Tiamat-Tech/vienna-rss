@@ -835,31 +835,27 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
 
     TreeNode *node = (TreeNode *)item;
     Folder *folder = node.folder;
-    NSString *feedURL = folder.feedURL;
 
-    if (folder.type == VNAFolderTypeRSS
-        || folder.type == VNAFolderTypeOpenReader
-        || folder.type == VNAFolderTypeSmart
-        || folder.type == VNAFolderTypeGroup
-        || folder.type == VNAFolderTypeSearch
-        || folder.type == VNAFolderTypeTrash)
+    if (folder.type != VNAFolderTypeRoot)
     {
         [internalDragData addObject:@(node.nodeId)];
+        [pboardItem setPropertyList:internalDragData forType:VNAPasteboardTypeFolderList];
     }
 
     if (folder.type == VNAFolderTypeRSS
         || folder.type == VNAFolderTypeOpenReader)
     {
-        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:folder.name];
-        NSRange range = NSMakeRange(0, folder.name.length);
+        NSString *feedURL = folder.feedURL;
+        NSString *folderTitle = folder.name;
+        [pboardItem setString:feedURL forType:NSPasteboardTypeString];
+        [pboardItem setString:feedURL forType:NSPasteboardTypeURL];
+        [pboardItem setString:folder.name forType:VNAPasteboardTypeURLName];
+        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:folderTitle];
+        NSRange range = NSMakeRange(0, folderTitle.length);
         [attributedString addAttribute:NSLinkAttributeName value:feedURL range:range];
         rtfData = [attributedString RTFFromRange:range documentAttributes:@{}];
+        [pboardItem setData:rtfData forType:NSPasteboardTypeRTF];
     }
-    [pboardItem setPropertyList:internalDragData forType:VNAPasteboardTypeFolderList];
-    [pboardItem setString:feedURL forType:NSPasteboardTypeString];
-    [pboardItem setString:feedURL forType:NSPasteboardTypeURL];
-    [pboardItem setString:folder.name forType:VNAPasteboardTypeURLName];
-    [pboardItem setData:rtfData forType:NSPasteboardTypeRTF];
 
     return pboardItem;
 }
