@@ -1320,15 +1320,6 @@ static void *VNAArticleListViewObserverContext = &VNAArticleListViewObserverCont
 	}
 }
 
-/* writeRowsWithIndexes
- * Called to initiate a drag from MessageListView. Use the common copy selection code to copy to
- * the pasteboard.
- */
--(BOOL)tableView:(NSTableView *)tv writeRowsWithIndexes:(NSIndexSet *)rowIndexes toPasteboard:(nonnull NSPasteboard *)pboard
-{
-	return [self copyTableSelection:rowIndexes toPasteboard:pboard];
-}
-
 /* willDisplayCell
  * Hook before a cell is displayed to set the cell's loading HTML flag for 
  * the progress indicator.
@@ -1437,6 +1428,12 @@ static void *VNAArticleListViewObserverContext = &VNAArticleListViewObserverCont
 
 	[pboard writeObjects:pbItems];
 	return countOfItems > 0;
+}
+
+// Provides a pasteboard writer for dragging article items
+- (id<NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row
+{
+    return [self pasteboardWriterForIndex:row];
 }
 
 /* markedArticleRange
