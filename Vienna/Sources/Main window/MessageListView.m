@@ -62,8 +62,35 @@
 {
 	if (self.selectedRow >= 0) {
 		NSIndexSet * selectedRowIndexes = self.selectedRowIndexes;
-		[self.delegate copyTableSelection:selectedRowIndexes toPasteboard:NSPasteboard.generalPasteboard];
+		[self copyTableSelection:selectedRowIndexes toPasteboard:NSPasteboard.generalPasteboard];
 	}
+}
+
+/* copyTableSelection
+ */
+- (BOOL)copyTableSelection:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pboard
+{
+    NSInteger count = rowIndexes.count;
+    NSMutableArray *pbItems = [NSMutableArray arrayWithCapacity:count];
+
+    // Set up the pasteboard
+    [pboard prepareForNewContentsWithOptions:NSPasteboardContentsCurrentHostOnly];
+
+    NSInteger countOfItems = 0;
+    // Get all the articles that are being copied
+    NSUInteger msgIndex = rowIndexes.firstIndex;
+    while (msgIndex != NSNotFound) {
+        NSPasteboardItem *pboardItem = (NSPasteboardItem *)[self.delegate pasteboardWriterForIndex:msgIndex];
+        if (pboardItem.types) {
+            [pbItems addObject:pboardItem];
+            ++countOfItems;
+        }
+
+        msgIndex = [rowIndexes indexGreaterThanIndex:msgIndex];
+    }
+
+    [pboard writeObjects:pbItems];
+    return countOfItems > 0;
 }
 
 /* validateMenuItem

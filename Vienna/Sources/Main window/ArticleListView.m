@@ -54,7 +54,6 @@ static void *VNAArticleListViewObserverContext = &VNAArticleListViewObserverCont
 @property (nonatomic) IBOutlet EnclosureView *enclosureView;
 
 -(void)initTableView;
--(BOOL)copyTableSelection:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pboard;
 -(void)setTableViewFont;
 -(void)showSortDirection;
 -(void)handleReadingPaneChange:(NSNotification *)notification;
@@ -1401,33 +1400,6 @@ static void *VNAArticleListViewObserverContext = &VNAArticleListViewObserverCont
 
     [fullHTMLText appendString:@"</body></html>"];
     [pboardItem setString:fullHTMLText.vna_stringByEscapingExtendedCharacters forType:NSPasteboardTypeHTML];
-}
-
-/* copyTableSelection
- */
--(BOOL)copyTableSelection:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pboard
-{
-	NSInteger count = rowIndexes.count;
-	NSMutableArray * pbItems = [NSMutableArray arrayWithCapacity:count];
-
-	// Set up the pasteboard
-	[pboard prepareForNewContentsWithOptions:NSPasteboardContentsCurrentHostOnly];
-
-	NSInteger countOfItems = 0;
-	// Get all the articles that are being dragged
-	NSUInteger msgIndex = rowIndexes.firstIndex;
-	while (msgIndex != NSNotFound) {
-		NSPasteboardItem *pboardItem = (NSPasteboardItem *)[self pasteboardWriterForIndex:msgIndex];
-		if (pboardItem.types) {
-			[pbItems addObject:pboardItem];
-		    ++countOfItems;
-		}
-
-		msgIndex = [rowIndexes indexGreaterThanIndex:msgIndex];
-	}
-
-	[pboard writeObjects:pbItems];
-	return countOfItems > 0;
 }
 
 // Provides a pasteboard writer for dragging article items
