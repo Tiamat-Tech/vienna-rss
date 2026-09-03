@@ -19,6 +19,7 @@
 //
 
 #import "ArticleBaseView.h"
+#import "MessageListView.h"
 
 @class AppController;
 @class ArticleController;
@@ -27,7 +28,7 @@
                                         NSMenuDelegate,
                                         NSMenuItemValidation,
                                         NSTableViewDataSource,
-                                        NSTableViewDelegate>
+                                        MessageListViewDelegate>
 
 - (/*nullable*/ instancetype)initWithCoder:(NSCoder *)coder NS_DESIGNATED_INITIALIZER;
 

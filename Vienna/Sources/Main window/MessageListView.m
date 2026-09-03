@@ -81,7 +81,7 @@
 	return NO;
 }
 
-// Might as well allow text drags into other apps...
+// Allow drags into other apps
 -(NSDragOperation)draggingSession:(NSDraggingSession *)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context
 {
     switch(context) {

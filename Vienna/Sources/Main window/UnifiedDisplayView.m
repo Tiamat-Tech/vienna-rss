@@ -55,7 +55,7 @@ static void *VNAUnifiedDisplayViewObserverContext = &VNAUnifiedDisplayViewObserv
 @end
 
 @implementation UnifiedDisplayView {
-    IBOutlet NSTableView *articleList;
+    IBOutlet MessageListView *articleList;
 
     NSTimer *markReadTimer;
 
