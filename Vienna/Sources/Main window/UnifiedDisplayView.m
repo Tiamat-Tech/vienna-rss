@@ -540,7 +540,7 @@ static void *VNAUnifiedDisplayViewObserverContext = &VNAUnifiedDisplayViewObserv
 
 /* copyTableSelection
  */
--(BOOL)copyIndexesSelection:(NSIndexSet*)rowIndexes toPasteboard:(NSPasteboard *)pboard
+-(BOOL)copyTableSelection:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pboard
 {
 	NSMutableArray * arrayOfURLs = [[NSMutableArray alloc] init];
 	NSMutableArray * arrayOfTitles = [[NSMutableArray alloc] init];
@@ -606,7 +606,7 @@ static void *VNAUnifiedDisplayViewObserverContext = &VNAUnifiedDisplayViewObserv
  */
 -(BOOL)tableView:(NSTableView*)aListView writeRowsWithIndexes:(NSIndexSet*)rowIndexes toPasteboard:(NSPasteboard *)pboard
 {
-	return [self copyIndexesSelection:rowIndexes toPasteboard:pboard];
+	return [self copyTableSelection:rowIndexes toPasteboard:pboard];
 }
 
 /* copy
@@ -614,7 +614,7 @@ static void *VNAUnifiedDisplayViewObserverContext = &VNAUnifiedDisplayViewObserv
  */
 -(IBAction)copy:(id)sender
 {
-	[self copyIndexesSelection:articleList.selectedRowIndexes toPasteboard:[NSPasteboard generalPasteboard]];
+	[self copyTableSelection:articleList.selectedRowIndexes toPasteboard:[NSPasteboard generalPasteboard]];
 }
 
 /* validateMenuItem
