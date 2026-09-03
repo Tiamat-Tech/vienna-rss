@@ -538,6 +538,58 @@ static void *VNAUnifiedDisplayViewObserverContext = &VNAUnifiedDisplayViewObserv
      }
 }
 
+// This is the common pasteboard code for an article item
+- (id<NSPasteboardWriting>)pasteboardWriterForIndex:(NSUInteger)msgIndex
+{
+    NSPasteboardItem *pboardItem = [[NSPasteboardItem alloc] init];
+
+    Article *thisArticle = self.articleController.allArticles[msgIndex];
+    NSString *msgTitle = thisArticle.title;
+    NSString *msgLink = thisArticle.link;
+
+    if (msgLink) {
+        [pboardItem setString:thisArticle.link forType:NSPasteboardTypeURL];
+    }
+    if (msgTitle) {
+        [pboardItem setString:msgTitle forType:VNAPasteboardTypeURLName];
+    }
+    // Plain text
+    NSString *fullPlainText = [NSString stringWithFormat:@"%@\n%@\n\n", msgTitle, thisArticle.summary];
+    [pboardItem setString:fullPlainText forType:NSPasteboardTypeString];
+
+    // For HTML, this hack is needed for multiple selections
+    // because some apps will only recognize the first HTML element
+    // while others will require that the numbers match
+    if (msgIndex == articleList.selectedRowIndexes.firstIndex) {
+        [self addHTMLRecapToPasteboardItem:pboardItem];
+    } else {
+        [pboardItem setString:@"" forType:NSPasteboardTypeHTML];
+    }
+
+    return pboardItem;
+}
+
+// This creates recapitulative type attached to the first item of the selection
+- (void)addHTMLRecapToPasteboardItem:(NSPasteboardItem *)pboardItem
+{
+    NSIndexSet *rowIndexes = articleList.selectedRowIndexes;
+    NSMutableString *fullHTMLText = [NSMutableString stringWithFormat:@"<!DOCTYPE html><html><head>"
+                                                                      @"<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"></head><body>"];
+
+    NSUInteger rowIndex = rowIndexes.firstIndex;
+    while (rowIndex != NSNotFound) {
+        Article *article = self.articleController.allArticles[rowIndex];
+
+        [fullHTMLText appendFormat:@"<header><div class=\"info\"><a href=\"%@\">%@</a></div></header>"
+                                    "<div class=\"articleBodyStyle\">%@</div><br>",
+                                   article.link, article.title, article.body];
+        rowIndex = [rowIndexes indexGreaterThanIndex:rowIndex];
+    }
+
+    [fullHTMLText appendString:@"</body></html>"];
+    [pboardItem setString:fullHTMLText.vna_stringByEscapingExtendedCharacters forType:NSPasteboardTypeHTML];
+}
+
 /* copyTableSelection
  */
 -(BOOL)copyTableSelection:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pboard
