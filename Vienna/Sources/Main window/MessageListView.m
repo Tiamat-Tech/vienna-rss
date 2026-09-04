@@ -61,36 +61,28 @@
 -(IBAction)copy:(id)sender
 {
 	if (self.selectedRow >= 0) {
-		NSIndexSet * selectedRowIndexes = self.selectedRowIndexes;
-		[self copyTableSelection:selectedRowIndexes toPasteboard:NSPasteboard.generalPasteboard];
+		NSPasteboard * pboard = NSPasteboard.generalPasteboard;
+		[pboard prepareForNewContentsWithOptions:NSPasteboardContentsCurrentHostOnly];
+		[pboard writeObjects:[self sharingItems]];
 	}
 }
 
-/* copyTableSelection
- */
-- (BOOL)copyTableSelection:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pboard
+- (NSArray<NSPasteboardItem *> *)sharingItems
 {
-    NSInteger count = rowIndexes.count;
-    NSMutableArray *pbItems = [NSMutableArray arrayWithCapacity:count];
+    NSIndexSet *rowIndexes = self.selectedRowIndexes;
+    NSMutableArray *pbItems = [NSMutableArray arrayWithCapacity:rowIndexes.count];
 
-    // Set up the pasteboard
-    [pboard prepareForNewContentsWithOptions:NSPasteboardContentsCurrentHostOnly];
-
-    NSInteger countOfItems = 0;
-    // Get all the articles that are being copied
+    // Get all the articles that are being copied or shared
     NSUInteger msgIndex = rowIndexes.firstIndex;
     while (msgIndex != NSNotFound) {
         NSPasteboardItem *pboardItem = (NSPasteboardItem *)[self.delegate pasteboardWriterForIndex:msgIndex];
         if (pboardItem.types) {
             [pbItems addObject:pboardItem];
-            ++countOfItems;
         }
-
         msgIndex = [rowIndexes indexGreaterThanIndex:msgIndex];
     }
 
-    [pboard writeObjects:pbItems];
-    return countOfItems > 0;
+    return [pbItems copy];
 }
 
 /* validateMenuItem

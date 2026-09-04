@@ -41,6 +41,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)setTableColumnHeaderImage:(NSImage *)image
           forColumnWithIdentifier:(NSUserInterfaceItemIdentifier)identifier;
+- (NSArray<NSPasteboardItem *> *)sharingItems;
 
 @end
 
