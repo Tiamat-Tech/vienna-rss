@@ -34,6 +34,7 @@
 	-(void)refreshFolder:(NSInteger)refreshFlag;
 	@property (nonatomic, readonly) Article *selectedArticle;
 	@property (readonly, nonatomic) NSArray *markedArticleRange;
+	@property (readonly, nonatomic) NSArray *itemsForMarkedRange;
 	-(void)saveTableSettings;
 	-(void)ensureSelectedArticle;
 

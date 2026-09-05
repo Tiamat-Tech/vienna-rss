@@ -630,6 +630,13 @@ static void *VNAUnifiedDisplayViewObserverContext = &VNAUnifiedDisplayViewObserv
 	return [articleArray copy];
 }
 
+/* itemsForMarkedRange
+ */
+-(NSArray *)itemsForMarkedRange
+{
+    return [articleList sharingItems];
+}
+
 #pragma mark -
 #pragma mark Keyboard (NSResponder)
 

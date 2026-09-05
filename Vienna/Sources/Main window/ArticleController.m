@@ -233,6 +233,13 @@ static void *VNAArticleControllerObserverContext = &VNAArticleControllerObserver
 	return mainArticleView.markedArticleRange;
 }
 
+/* itemsForMarkedRange
+ */
+-(NSArray *)itemsForMarkedRange
+{
+    return mainArticleView.itemsForMarkedRange;
+}
+
 /* saveTableSettings
  * Save selected article and folder
  * and, for relevant layouts, table settings

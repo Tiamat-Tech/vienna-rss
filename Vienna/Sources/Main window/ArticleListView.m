@@ -1427,6 +1427,13 @@ static void *VNAArticleListViewObserverContext = &VNAArticleListViewObserverCont
 	return [articleArray copy];
 }
 
+/* itemsForMarkedRange
+ */
+-(NSArray *)itemsForMarkedRange
+{
+    return [articleList sharingItems];
+}
+
 /* dealloc
  * Clean up behind ourself.
  */
