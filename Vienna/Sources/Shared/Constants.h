@@ -121,7 +121,7 @@ extern NSInteger const MA_Default_Check_Frequency;
 extern NSInteger const MA_Default_ConcurrentDownloads;
 
 extern NSPasteboardType const VNAPasteboardTypeFolderList;
-extern NSPasteboardType const VNAPasteboardTypeURLName;
+extern NSPasteboardType const VNAPasteboardTypeURLName NS_SWIFT_NAME(urlName);
 extern NSPasteboardType const VNAPasteboardTypeWebURLsWithTitles;
 
 extern AEKeyword const EditDataItemAppleEventClass;
