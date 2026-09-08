@@ -56,10 +56,6 @@
     [_dataSource outlineView:outlineView draggingSession:session endedAtPoint:screenPoint operation:operation];
 }
 
-- (BOOL)outlineView:(NSOutlineView *)outlineView writeItems:(NSArray *)items toPasteboard:(NSPasteboard *)pasteboard {
-    return [_dataSource outlineView:outlineView writeItems:items toPasteboard:pasteboard];
-}
-
 - (void)outlineView:(NSOutlineView *)outlineView updateDraggingItemsForDrag:(id <NSDraggingInfo>)draggingInfo {
     [_dataSource outlineView:outlineView updateDraggingItemsForDrag:draggingInfo];
 }

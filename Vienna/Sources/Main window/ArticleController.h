@@ -55,6 +55,7 @@
 @property (nonatomic, readonly) NSInteger currentFolderId;
 @property (nonatomic, readonly) Article *selectedArticle;
 @property (readonly, nonatomic) NSArray *markedArticleRange;
+@property (readonly, nonatomic) NSArray *itemsForMarkedRange;
 -(void)saveTableSettings;
 -(void)sortArticles;
 @property (readonly, nonatomic) NSArray *allArticles;

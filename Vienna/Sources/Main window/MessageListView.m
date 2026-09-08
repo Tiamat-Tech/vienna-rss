@@ -61,9 +61,28 @@
 -(IBAction)copy:(id)sender
 {
 	if (self.selectedRow >= 0) {
-		NSIndexSet * selectedRowIndexes = self.selectedRowIndexes;
-		[self.delegate copyTableSelection:selectedRowIndexes toPasteboard:NSPasteboard.generalPasteboard];
+		NSPasteboard * pboard = NSPasteboard.generalPasteboard;
+		[pboard prepareForNewContentsWithOptions:NSPasteboardContentsCurrentHostOnly];
+		[pboard writeObjects:[self sharingItems]];
 	}
+}
+
+- (NSArray<NSPasteboardItem *> *)sharingItems
+{
+    NSIndexSet *rowIndexes = self.selectedRowIndexes;
+    NSMutableArray *pbItems = [NSMutableArray arrayWithCapacity:rowIndexes.count];
+
+    // Get all the articles that are being copied or shared
+    NSUInteger msgIndex = rowIndexes.firstIndex;
+    while (msgIndex != NSNotFound) {
+        NSPasteboardItem *pboardItem = (NSPasteboardItem *)[self.delegate pasteboardWriterForIndex:msgIndex];
+        if (pboardItem.types) {
+            [pbItems addObject:pboardItem];
+        }
+        msgIndex = [rowIndexes indexGreaterThanIndex:msgIndex];
+    }
+
+    return [pbItems copy];
 }
 
 /* validateMenuItem
@@ -81,7 +100,7 @@
 	return NO;
 }
 
-// Might as well allow text drags into other apps...
+// Allow drags into other apps
 -(NSDragOperation)draggingSession:(NSDraggingSession *)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context
 {
     switch(context) {

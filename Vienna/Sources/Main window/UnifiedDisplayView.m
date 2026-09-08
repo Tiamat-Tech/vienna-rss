@@ -55,7 +55,7 @@ static void *VNAUnifiedDisplayViewObserverContext = &VNAUnifiedDisplayViewObserv
 @end
 
 @implementation UnifiedDisplayView {
-    IBOutlet NSTableView *articleList;
+    IBOutlet MessageListView *articleList;
 
     NSTimer *markReadTimer;
 
@@ -538,99 +538,62 @@ static void *VNAUnifiedDisplayViewObserverContext = &VNAUnifiedDisplayViewObserv
      }
 }
 
-/* copyTableSelection
- * This is the common copy selection code. We build an array of dictionary entries each of
- * which include details of each selected article in the standard RSS item format defined by
- * Ranchero NetNewsWire. See http://ranchero.com/netnewswire/rssclipboard.php for more details.
- */
--(BOOL)copyIndexesSelection:(NSIndexSet*)rowIndexes toPasteboard:(NSPasteboard *)pboard
+// This is the common pasteboard code for an article item
+- (id<NSPasteboardWriting>)pasteboardWriterForIndex:(NSUInteger)msgIndex
 {
-	NSMutableArray * arrayOfArticles = [[NSMutableArray alloc] init];
-	NSMutableArray * arrayOfURLs = [[NSMutableArray alloc] init];
-	NSMutableArray * arrayOfTitles = [[NSMutableArray alloc] init];
-	NSMutableString * fullHTMLText = [[NSMutableString alloc] init];
-	NSMutableString * fullPlainText = [[NSMutableString alloc] init];
-	Database * db = [Database sharedManager];
-	NSInteger count = rowIndexes.count;
+    NSPasteboardItem *pboardItem = [[NSPasteboardItem alloc] init];
 
-	// Set up the pasteboard
-	[pboard declareTypes:@[VNAPasteboardTypeRSSItem, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString, NSPasteboardTypeHTML] owner:self];
-    if (count == 1) {
-        [pboard addTypes:@[NSPasteboardTypeURL, VNAPasteboardTypeURLName]
-                   owner:self];
+    Article *thisArticle = self.articleController.allArticles[msgIndex];
+    NSString *msgTitle = thisArticle.title;
+    NSString *msgLink = thisArticle.link;
+
+    if (msgLink) {
+        [pboardItem setString:thisArticle.link forType:NSPasteboardTypeURL];
+    }
+    if (msgTitle) {
+        [pboardItem setString:msgTitle forType:VNAPasteboardTypeURLName];
+    }
+    // Plain text
+    NSString *fullPlainText = [NSString stringWithFormat:@"%@\n%@\n\n", msgTitle, thisArticle.summary];
+    [pboardItem setString:fullPlainText forType:NSPasteboardTypeString];
+
+    // For HTML, this hack is needed for multiple selections
+    // because some apps will only recognize the first HTML element
+    // while others will require that the numbers match
+    if (msgIndex == articleList.selectedRowIndexes.firstIndex) {
+        [self addHTMLRecapToPasteboardItem:pboardItem];
+    } else {
+        [pboardItem setString:@"" forType:NSPasteboardTypeHTML];
     }
 
-	// Open the HTML string
-	[fullHTMLText appendString:@"<html style=\"font-family:sans-serif;\">"
-                                "<head><meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"></head><body>"];
-
-	// Get all the articles that are being dragged
-	NSUInteger msgIndex = rowIndexes.firstIndex;
-	while (msgIndex != NSNotFound) {
-		Article * thisArticle = self.articleController.allArticles[msgIndex];
-		Folder * folder = [db folderFromID:thisArticle.folderId];
-		NSString * msgText = thisArticle.body;
-		NSString * msgTitle = thisArticle.title;
-		NSString * msgLink = thisArticle.link;
-
-		[arrayOfURLs addObject:msgLink];
-		[arrayOfTitles addObject:msgTitle];
-
-		NSMutableDictionary * articleDict = [NSMutableDictionary dictionary];
-		[articleDict setValue:msgTitle forKey:@"rssItemTitle"];
-		[articleDict setValue:msgLink forKey:@"rssItemLink"];
-		[articleDict setValue:msgText forKey:@"rssItemDescription"];
-		[articleDict setValue:folder.name forKey:@"sourceName"];
-		[articleDict setValue:folder.homePage forKey:@"sourceHomeURL"];
-		[articleDict setValue:folder.feedURL forKey:@"sourceRSSURL"];
-		[arrayOfArticles addObject:articleDict];
-
-		// Plain text
-        [fullPlainText appendFormat:@"%@\n%@\n\n", msgTitle, thisArticle.summary];
-
-		// Add HTML version too.
-		[fullHTMLText appendFormat:@"<div class=\"info\"><a href=\"%@\">%@</a><div>"
-                                    "<div class=\"articleBodyStyle\">%@</div><br>", msgLink, msgTitle, msgText];
-
-		if (count == 1) {
-			[pboard setString:msgLink forType:NSPasteboardTypeURL];
-			[pboard setString:msgTitle forType:VNAPasteboardTypeURLName];
-
-			// Write the link to the pastboard.
-			[[NSURL URLWithString:msgLink] writeToPasteboard:pboard];
-		}
-
-		//increment
-    	msgIndex = [rowIndexes indexGreaterThanIndex: msgIndex];
-	}
-
-	// Close the HTML string
-	[fullHTMLText appendString:@"</body></html>"];
-
-	// Put string on the pasteboard for external drops.
-	[pboard setPropertyList:arrayOfArticles forType:VNAPasteboardTypeRSSItem];
-	[pboard setPropertyList:@[arrayOfURLs, arrayOfTitles] forType:VNAPasteboardTypeWebURLsWithTitles];
-	[pboard setString:fullPlainText forType:NSPasteboardTypeString];
-	[pboard setString:fullHTMLText.vna_stringByEscapingExtendedCharacters forType:NSPasteboardTypeHTML];
-
-	return YES;
+    return pboardItem;
 }
 
-/* writeRowsWithIndexes
- * Use the common copy selection code to copy to
- * the pasteboard.
- */
--(BOOL)tableView:(NSTableView*)aListView writeRowsWithIndexes:(NSIndexSet*)rowIndexes toPasteboard:(NSPasteboard *)pboard
+// This creates recapitulative type attached to the first item of the selection
+- (void)addHTMLRecapToPasteboardItem:(NSPasteboardItem *)pboardItem
 {
-	return [self copyIndexesSelection:rowIndexes toPasteboard:pboard];
+    NSIndexSet *rowIndexes = articleList.selectedRowIndexes;
+    NSMutableString *fullHTMLText = [NSMutableString stringWithFormat:@"<!DOCTYPE html><html><head>"
+                                                                      @"<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"></head><body>"];
+
+    NSUInteger rowIndex = rowIndexes.firstIndex;
+    while (rowIndex != NSNotFound) {
+        Article *article = self.articleController.allArticles[rowIndex];
+
+        [fullHTMLText appendFormat:@"<header><div class=\"info\"><a href=\"%@\">%@</a></div></header>"
+                                    "<div class=\"articleBodyStyle\">%@</div><br>",
+                                   article.link, article.title, article.body];
+        rowIndex = [rowIndexes indexGreaterThanIndex:rowIndex];
+    }
+
+    [fullHTMLText appendString:@"</body></html>"];
+    [pboardItem setString:fullHTMLText.vna_stringByEscapingExtendedCharacters forType:NSPasteboardTypeHTML];
 }
 
-/* copy
- * Handle the Copy action when the article list has focus.
- */
--(IBAction)copy:(id)sender
+// Provides a pasteboard writer for dragging article items
+- (id<NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row
 {
-	[self copyIndexesSelection:articleList.selectedRowIndexes toPasteboard:[NSPasteboard generalPasteboard]];
+    return [self pasteboardWriterForIndex:row];
 }
 
 /* validateMenuItem
@@ -665,6 +628,13 @@ static void *VNAUnifiedDisplayViewObserverContext = &VNAUnifiedDisplayViewObserv
 		}
 	}
 	return [articleArray copy];
+}
+
+/* itemsForMarkedRange
+ */
+-(NSArray *)itemsForMarkedRange
+{
+    return [articleList sharingItems];
 }
 
 #pragma mark -

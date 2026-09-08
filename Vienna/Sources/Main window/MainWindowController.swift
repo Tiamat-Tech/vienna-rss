@@ -174,23 +174,32 @@ final class MainWindowController: NSWindowController {
     var shareableItemsSubject = String()
 
     private var shareableItems: [any NSPasteboardWriting] {
-        var items = [URL]()
+        var items = [any NSPasteboardWriting]()
         if let activeTab = browser.activeTab, let url = activeTab.tabUrl {
-            items.append(url)
-            shareableItemsSubject = activeTab.title ?? NSLocalizedString("URL", comment: "URL")
+            items.append(url as NSURL)
+            let title = activeTab.title ?? NSLocalizedString("URL", comment: "URL")
+            items.append(title as NSString)
+            shareableItemsSubject = title
         } else {
-            if let articles = articleController?.markedArticleRange as? [Article] {
-                let links = articles.compactMap { $0.link }
-                let urls = links.compactMap { URL(string: $0) }
-                items = urls
-                if articles.count == 1 {
-                    shareableItemsSubject = articles[0].title ?? ""
+            if let pboardItems = articleController?.itemsForMarkedRange as? [NSPasteboardItem]
+            {
+                for pboardItem in pboardItems {
+                    if let urlString = pboardItem.string(forType: .URL), let url = URL(string: urlString)
+                    {
+                        items.append(url as NSURL)
+                    }
+                    if let text = pboardItem.string(forType: .string) {
+                        items.append(text as NSString)
+                    }
+                }
+                if pboardItems.count == 1 {
+                    shareableItemsSubject = pboardItems[0].string(forType: .urlName) ?? ""
                 } else {
-                    shareableItemsSubject = String(format: NSLocalizedString("%u articles", comment: ""), articles.count)
+                    shareableItemsSubject = String(format: NSLocalizedString("%u articles", comment: ""), pboardItems.count)
                 }
             }
         }
-        return items as [NSURL]
+        return items
     }
 
     private func toolbarItem(

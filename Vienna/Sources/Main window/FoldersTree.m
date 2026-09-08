@@ -32,6 +32,7 @@
 #import "Database.h"
 #import "TreeNode.h"
 #import "Folder.h"
+#import "SubscriptionModel.h"
 #import "Vienna-Swift.h"
 
 NSString * const MAPref_FeedListSizeMode = @"FeedListSizeMode";
@@ -97,7 +98,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     [self updateCellSize:[userDefaults integerForKey:MAPref_FeedListSizeMode]];
 
 	// Register for dragging
-	[self.outlineView registerForDraggedTypes:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString]];
+	[self.outlineView registerForDraggedTypes:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString]];
 	[self.outlineView setVerticalMotionCanBeginDrag:YES];
 	
 	// Make sure selected row is visible
@@ -825,69 +826,61 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
 	[self.controller.browser switchToPrimaryTab];
 }
 
+// This is the common pasteboard code for a TreeNode item
+- (id<NSPasteboardWriting>)pasteboardWriterForItem:(id)item
+{
+    NSPasteboardItem *pboardItem = [[NSPasteboardItem alloc] init];
+    NSMutableArray *internalDragData = [NSMutableArray array];
+    NSData *rtfData;
+
+    TreeNode *node = (TreeNode *)item;
+    Folder *folder = node.folder;
+
+    if (folder.type != VNAFolderTypeRoot)
+    {
+        [internalDragData addObject:@(node.nodeId)];
+        [pboardItem setPropertyList:internalDragData forType:VNAPasteboardTypeFolderList];
+    }
+
+    if (folder.type == VNAFolderTypeRSS
+        || folder.type == VNAFolderTypeOpenReader)
+    {
+        NSString *feedURL = folder.feedURL;
+        NSString *folderTitle = folder.name;
+        [pboardItem setString:feedURL forType:NSPasteboardTypeString];
+        [pboardItem setString:feedURL forType:NSPasteboardTypeURL];
+        [pboardItem setString:folder.name forType:VNAPasteboardTypeURLName];
+        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:folderTitle];
+        NSRange range = NSMakeRange(0, folderTitle.length);
+        [attributedString addAttribute:NSLinkAttributeName value:feedURL range:range];
+        rtfData = [attributedString RTFFromRange:range documentAttributes:@{}];
+        [pboardItem setData:rtfData forType:NSPasteboardTypeRTF];
+    }
+
+    return pboardItem;
+}
+
 /* copyTableSelection
- * This is the common copy selection code. We build an array of dictionary entries each of
- * which include details of each selected folder in the standard RSS item format defined by
- * Ranchero NetNewsWire. See http://ranchero.com/netnewswire/rssclipboard.php for more details.
  */
 -(BOOL)copyTableSelection:(NSArray *)items toPasteboard:(NSPasteboard *)pboard
 {
 	NSInteger count = items.count;
-	NSMutableArray * externalDragData = [NSMutableArray arrayWithCapacity:count];
-	NSMutableArray * internalDragData = [NSMutableArray arrayWithCapacity:count];
-	NSMutableString * stringDragData = [NSMutableString string];
-	NSMutableArray * arrayOfURLs = [NSMutableArray arrayWithCapacity:count];
-	NSMutableArray * arrayOfTitles = [NSMutableArray arrayWithCapacity:count];
+	NSMutableArray * pbItems = [NSMutableArray arrayWithCapacity:count];
 	NSInteger index;
 
 	// We'll create the types of data on the clipboard.
-	[pboard declareTypes:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString] owner:self];
+    [pboard prepareForNewContentsWithOptions:NSPasteboardContentsCurrentHostOnly];
 
-	// Create an array of NSNumber objects containing the selected folder IDs.
 	NSInteger countOfItems = 0;
 	for (index = 0; index < count; ++index) {
-		TreeNode * node = items[index];
-		Folder * folder = node.folder;
-
-		if (folder.type == VNAFolderTypeRSS
-            || folder.type == VNAFolderTypeOpenReader
-            || folder.type == VNAFolderTypeSmart
-            || folder.type == VNAFolderTypeGroup
-            || folder.type == VNAFolderTypeSearch
-            || folder.type == VNAFolderTypeTrash) {
-			[internalDragData addObject:@(node.nodeId)];
-			++countOfItems;
-		}
-
-		if (folder.type == VNAFolderTypeRSS
-            || folder.type == VNAFolderTypeOpenReader) {
-			NSString * feedURL = folder.feedURL;
-			
-			NSMutableDictionary * dict = [NSMutableDictionary dictionary];
-			[dict setValue:folder.name forKey:@"sourceName"];
-			[dict setValue:folder.description forKey:@"sourceDescription"];
-			[dict setValue:feedURL forKey:@"sourceRSSURL"];
-			[dict setValue:folder.homePage forKey:@"sourceHomeURL"];
-			[externalDragData addObject:dict];
-
-			[stringDragData appendFormat:@"%@\n", feedURL];
-			
-			NSURL * safariURL = [NSURL URLWithString:feedURL];
-			if (safariURL != nil && !safariURL.fileURL) {
-				if (![@"feed" isEqualToString:safariURL.scheme]) {
-					feedURL = [NSString stringWithFormat:@"feed:%@", safariURL.resourceSpecifier];
-				}
-				[arrayOfURLs addObject:feedURL];
-				[arrayOfTitles addObject:folder.name];
-			}
+		NSPasteboardItem *pboardItem = (NSPasteboardItem *)[self pasteboardWriterForItem:items[index]];
+		if (pboardItem.types) {
+			[pbItems addObject:pboardItem];
+		    ++countOfItems;
 		}
 	}
 
-	// Copy the data to the pasteboard 
-	[pboard setPropertyList:externalDragData forType:VNAPasteboardTypeRSSSource];
-	[pboard setString:stringDragData forType:NSPasteboardTypeString];
-	[pboard setPropertyList:internalDragData forType:VNAPasteboardTypeFolderList]; 
-	[pboard setPropertyList:@[arrayOfURLs, arrayOfTitles] forType:VNAPasteboardTypeWebURLsWithTitles];
+	[pboard writeObjects:pbItems];
 	return countOfItems > 0; 
 }
 
@@ -1145,7 +1138,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
             proposedChildIndex:(NSInteger)index
 {
     NSPasteboard * pb = [info draggingPasteboard];
-    NSString * type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString]];
+    NSString * type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeURL, NSPasteboardTypeString]];
     NSDragOperation dragType = ([type isEqualToString:VNAPasteboardTypeFolderList]) ? NSDragOperationMove : NSDragOperationCopy;
 
     TreeNode * node = (TreeNode *)item;
@@ -1188,7 +1181,7 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
 {
     __block NSInteger childIndex = index;
     NSPasteboard *pb = [info draggingPasteboard];
-    NSString *type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeRSSSource, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeString]];
+    NSString *type = [pb availableTypeFromArray:@[VNAPasteboardTypeFolderList, VNAPasteboardTypeWebURLsWithTitles, NSPasteboardTypeURL, NSPasteboardTypeString]];
     TreeNode *node = item ? (TreeNode *)item : self.rootNode;
 
     NSInteger parentId = node.nodeId;
@@ -1197,17 +1190,33 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     }
 
     // Check the type
-    if ([type isEqualToString:NSPasteboardTypeString]) {
+    if ([type isEqualToString:NSPasteboardTypeURL] || [type isEqualToString:NSPasteboardTypeString]) {
         // This is possibly a URL that we'll handle as a potential feed subscription. It's
         // not our call to make though.
+        NSURL *targetURL = [NSURL URLWithString:[pb stringForType:type]];
+        targetURL = [[[SubscriptionModel alloc] init] verifiedFeedURLFromURL:targetURL];
         NSInteger predecessorId = (childIndex > 0) ? [node childByIndex:(childIndex - 1)].nodeId : 0;
-        [APPCONTROLLER createNewSubscription:[pb stringForType:type] underFolder:parentId afterChild:predecessorId];
+        [APPCONTROLLER createNewSubscription:targetURL.absoluteString underFolder:parentId afterChild:predecessorId];
         return YES;
     }
     if ([type isEqualToString:VNAPasteboardTypeFolderList]) {
+        // This is an internal drag
         Database *db = [Database sharedManager];
         NSArray *arrayOfSources = [pb propertyListForType:type];
         NSInteger count = arrayOfSources.count;
+        // hack to extend drag if we have a multiple items selection being dragged
+        if (count == 1 && [self countOfSelectedFolders] > 1) {
+            NSMutableArray * selectedFolderIDs = [NSMutableArray array];
+            for (Folder *folder in self.selectedFolders) {
+                    [selectedFolderIDs addObject:@(folder.itemId)];
+            }
+            // verify there is a match between the selection and the dragged item
+            if ([selectedFolderIDs containsObject:arrayOfSources[0]]) {
+                arrayOfSources = selectedFolderIDs;
+                count = arrayOfSources.count;
+            }
+        }
+
         NSInteger index;
         NSInteger predecessorId = (childIndex > 0) ? [node childByIndex:(childIndex - 1)].nodeId : 0;
 
@@ -1234,52 +1243,8 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
         BOOL result = [self moveFolders:array withOpenReaderSync:YES];
         return result;
     }
-    if ([type isEqualToString:VNAPasteboardTypeRSSSource]) {
-        Database *dbManager = [Database sharedManager];
-        NSArray *arrayOfSources = [pb propertyListForType:type];
-        NSInteger count = arrayOfSources.count;
-        NSInteger index;
-
-        // This is an RSS drag using the protocol defined by Ranchero for NetNewsWire. See
-        // http://ranchero.com/netnewswire/rssclipboard.php for more details.
-        //
-        __block NSInteger folderToSelect = -1;
-        for (index = 0; index < count; ++index) {
-            NSDictionary *sourceItem = arrayOfSources[index];
-            NSString *feedTitle = [sourceItem valueForKey:@"sourceName"];
-            NSString *feedHomePage = [sourceItem valueForKey:@"sourceHomeURL"];
-            NSString *feedURL = [sourceItem valueForKey:@"sourceRSSURL"];
-            NSString *feedDescription = [sourceItem valueForKey:@"sourceDescription"];
-
-            if (feedURL && ![dbManager folderFromFeedURL:feedURL]) {
-                NSInteger predecessorId = (childIndex > 0) ? [node childByIndex:(childIndex - 1)].nodeId : 0;
-                NSInteger folderId = [dbManager addRSSFolder:feedTitle underParent:parentId afterChild:predecessorId subscriptionURL:feedURL];
-                if (feedDescription) {
-                    [dbManager setDescription:feedDescription forFolder:folderId];
-                }
-                if (feedHomePage) {
-                    [dbManager setHomePage:feedHomePage forFolder:folderId];
-                }
-                if (folderId > 0) {
-                    folderToSelect = folderId;
-                }
-                ++childIndex;
-            }
-        }
-
-        // If parent was a group, expand it now
-        if (parentId != VNAFolderTypeRoot) {
-            [self.outlineView expandItem:[self.rootNode nodeFromID:parentId]];
-        }
-
-        // Select a new folder
-        if (folderToSelect > 0) {
-            [self selectFolder:folderToSelect];
-        }
-
-        return YES;
-    }
-    if ([type isEqualToString:@"WebURLsWithTitlesPboardType"]) {
+    if ([type isEqualToString:VNAPasteboardTypeWebURLsWithTitles]) {
+        // This is the legacy array of URLs / array of titles exported by Safari ("WebURLsWithTitlesPboardType")
         Database *dbManager = [Database sharedManager];
         NSArray *webURLsWithTitles = [pb propertyListForType:type];
         NSArray *arrayOfURLs = webURLsWithTitles[0];
@@ -1291,12 +1256,16 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
         for (index = 0; index < count; ++index) {
             NSString *feedTitle = arrayOfTitles[index];
             NSString *feedURL = arrayOfURLs[index];
-            NSURL *draggedURL = [NSURL URLWithString:feedURL];
-            if (draggedURL.scheme && [draggedURL.scheme isEqualToString:@"feed"]) {
-                feedURL = [NSString stringWithFormat:@"http:%@", draggedURL.resourceSpecifier];
+            NSURL *targetURL = [NSURL URLWithString:feedURL];
+            targetURL = [[[SubscriptionModel alloc] init] verifiedFeedURLFromURL:targetURL];
+            if (targetURL.scheme && [targetURL.scheme isEqualToString:@"feed"]) {
+                feedURL = [NSString stringWithFormat:@"http:%@", targetURL.resourceSpecifier];
+                targetURL = [NSURL URLWithString:feedURL];
+            } else {
+                feedURL = targetURL.absoluteString;
             }
 
-            if (![dbManager folderFromFeedURL:feedURL]) {
+            if (targetURL && ![dbManager folderFromFeedURL:feedURL]) {
                 NSInteger predecessorId = (childIndex > 0) ? [node childByIndex:(childIndex - 1)].nodeId : 0;
                 NSInteger newFolderId = [dbManager addRSSFolder:feedTitle underParent:parentId afterChild:predecessorId subscriptionURL:feedURL];
                 if (newFolderId > 0) {
@@ -1348,12 +1317,10 @@ static void *VNAFoldersTreeObserverContext = &VNAFoldersTreeObserverContext;
     return [node childByIndex:index];
 }
 
-// Collect the selected folders ready for dragging.
-- (BOOL)outlineView:(NSOutlineView *)outlineView
-         writeItems:(NSArray *)items
-       toPasteboard:(NSPasteboard *)pasteboard
+// Provides a pasteboard writer for dragging folder items
+- (id<NSPasteboardWriting>)outlineView:(NSOutlineView *)outlineView pasteboardWriterForItem:(id)item
 {
-    return [self copyTableSelection:items toPasteboard:pasteboard];
+    return [self pasteboardWriterForItem:item];
 }
 
 // MARK: - NSOutlineViewDelegate

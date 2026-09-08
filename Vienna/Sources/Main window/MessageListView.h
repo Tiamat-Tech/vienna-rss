@@ -24,8 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol MessageListViewDelegate <NSTableViewDelegate>
 
-- (BOOL)copyTableSelection:(NSIndexSet *)rowIndexes
-              toPasteboard:(NSPasteboard *)pboard;
+- (id<NSPasteboardWriting>)pasteboardWriterForIndex:(NSUInteger)msgIndex;
 
 @end
 
@@ -42,6 +41,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)setTableColumnHeaderImage:(NSImage *)image
           forColumnWithIdentifier:(NSUserInterfaceItemIdentifier)identifier;
+- (NSArray<NSPasteboardItem *> *)sharingItems;
 
 @end
 
