@@ -1,5 +1,21 @@
 Vienna ChangeLog File
 =====================
+Vienna 3.11.0 Beta 5
+--------------------
+_released 2026-09-10_
+### 🚲 Changes
+- Add "New subscription…" items to the menubar icon and the Dock menu
+- Support standard keyboard shortcuts (Control-Tab and Control-Shift-Tab) for tab navigation; Option-Cmd-← and Optin-Command-→ remain supported
+- Export article summaries along with their associated URLs in sharing services
+- Update translations
+### 🛤️ Infrastructure updates
+- Build on macOS 26.6.2 / Xcode 26.6
+- Update Sparkle to 2.9.6
+#### ⚙️ Internals improvement
+- Replace deprecated drag-and-drop methods and update supported pasteboard types
+### 📖 Documentation
+- Add technical documentation and reorganize most documents into a dedicated Documentation folder 
+
 Vienna 3.11.0 Beta 4
 --------------------
 _released 2026-07-19_
